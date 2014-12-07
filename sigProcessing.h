@@ -33,7 +33,7 @@ typedef struct {
 
 //Array of noteInfo elements to allow keys
 //on the computer keyboard to play certain notes
-noteInfo keyMap[123];
+noteInfo **keyMap;
 
 //Audio signal source
 typedef enum signalSource {
@@ -72,10 +72,19 @@ typedef struct {
  *************** Function Prototypes ********************
  ********************************************************/
 
+/****** Delay effects ******/
+
 void setDelayLen (float delayLen);
 
 void mixDelaySig (float pctWet, float pctDry);
 
+/**** Amplitude and Frequency Modulation effects ****/ 
+
 void AMmodulate (float modFreq);
 
 void FMmodulate (float modFreq);
+
+/*** Allow user to play notes using the computer keyboard ***/
+void initKeyMap();
+
+void freeKeyMap();

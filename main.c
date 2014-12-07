@@ -22,8 +22,79 @@
 #include <portaudio.h>
 #include "sigProcessing.h"
 
+#define MONO 1
+#define STEREO 2
+#define NUM_CHANNELS STEREO
+
+#define INIT_FREQ 0
+#define SAMPLE_RATE 44100
+#define FRAMES_PER_BUFFER 1024
+
+/**** PA callback prototype *****/
+static int paCallback( const void *inputBuffer,
+        void *outputBuffer, unsigned long framesPerBuffer,
+        const PaStreamCallbackTimeInfo* timeInfo,
+        PaStreamCallbackFlags statusFlags, void *userData );
+
+
+/*=================================================*
+****************************************************
+***************** MAIN FUNCTION ********************
+****************************************************
+===================================================*/
 int main ()
 {
 
+    /****************************************************
+     **********************SETUP*************************
+     ****************************************************/
+    
+    //Set up keyboard mapping
+    initKeyMap();
+    
+    //declare PortAudio variables
+    PaStream *stream;
+    PaStreamParameters outputParameters;
+    PaError err;
+    paData data;
+
+    //Initialize PortAudio
+    Pa_Initialize();
+
+    //Set output stream parameters
+    outputParameters.device = Pa_GetDefaultOutputDevice();
+    outputParameters.channelCount = NUM_CHANNELS;
+    outputParameters.sampleFormat = paFloat32;
+    outputParameters.suggestedLatency = 
+        Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+    outputParameters.hostApiSpecificStreamInfo = NULL;
+
+    //Open audio stream and check for error
+    err = Pa_OpenStream(&stream, NULL /* no input */,
+            &outputParameters,
+            SAMPLE_RATE, FRAMES_PER_BUFFER, paNoFlag,
+            paCallback, &data);
+
+    if (err != paNoError)
+    {
+        printf("Error in PortAudio: Pa_OpenStream: %s\n", Pa_GetErrorText(err));
+    }
+
+    //Start audio stream and check for error
+    err = Pa_StartStream(stream);
+
+    if (err != paNoError)
+    {
+        printf("Error in PortAudio: Pa_StartStream: %s\n", Pa_GetErrorText(err));
+    }
     return 0;
 }
+
+static int paCallback( const void *inputBuffer,
+        void *outputBuffer, unsigned long framesPerBuffer,
+        const PaStreamCallbackTimeInfo* timeInfo,
+        PaStreamCallbackFlags statusFlags, void *userData )
+{
+    return paContinue;
+}
+
