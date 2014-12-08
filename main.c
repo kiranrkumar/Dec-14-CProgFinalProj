@@ -45,9 +45,7 @@ static int paCallback( const void *inputBuffer,
 int main ()
 {
 
-    /****************************************************
-     **********************SETUP*************************
-     ****************************************************/
+    /******************* SETUP  ***********************/
     
     //Set up keyboard mapping
     initKeyMap();
@@ -90,11 +88,23 @@ int main ()
     return 0;
 }
 
+/**** PA callback function *****/
 static int paCallback( const void *inputBuffer,
         void *outputBuffer, unsigned long framesPerBuffer,
         const PaStreamCallbackTimeInfo* timeInfo,
         PaStreamCallbackFlags statusFlags, void *userData )
 {
+
+    //Output buffer
+    float *out = (float *)outputBuffer;
+
+    //phase and period information for generating tones
+    static float phase = 0, prevPhase = 0;
+    static int periodInSamples = 0;
+
+    //loop index
+    int i;
+
     return paContinue;
 }
 
