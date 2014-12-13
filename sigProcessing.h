@@ -38,7 +38,8 @@ noteInfo **keyMap;
 //Audio signal source
 typedef enum signalSource {
     OSCILLATOR,
-    SOUNDFILE
+    SOUNDFILE,
+    MICROPHONE
 } sigSource;
 
 //Oscillator wave type

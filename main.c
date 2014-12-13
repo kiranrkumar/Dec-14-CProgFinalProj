@@ -57,6 +57,7 @@
 #define SAMPLING_RATE           44100
 #define MONO                    1
 #define STEREO                  2
+#define INIT_FREQ               0
 
 //OpenGL Values
 #define INIT_WIDTH              800
@@ -64,6 +65,7 @@
 #define ROTATION_INCR           .75f
 
 //Signal Thresholds
+#define NUM_MODES               3
 #define DELAY_LEN_MIN           0
 #define DELAY_LEN_MAX           1000
 #define AM_FREQ_MAX             400
@@ -230,6 +232,7 @@ static int paCallback( const void *inputBuffer,
 
     //Cast void pointers
     float *out = (float *)outputBuffer;
+    float *in = (float *)inputBuffer;
     paData *audioData = (paData *)userData;
 
     //1. Get audio data if audio file or frequency if oscillator (based on mode)
@@ -237,6 +240,11 @@ static int paCallback( const void *inputBuffer,
     if (audioData->sigSrc == SOUNDFILE)
     {
         //TODO - read data from sound file into buffer
+    }
+    else if (audioData->sigSrc == MICROPHONE)
+    {
+        //TODO - read microphone input into buffer
+        memcpy(out, in, framesPerBuffer * sizeof(float));
     }
     else
     {
@@ -354,7 +362,7 @@ void initialize_audio() {
 
     /* Set output stream parameters */
     outputParameters.device = Pa_GetDefaultOutputDevice();
-    outputParameters.channelCount = g_channels;
+    outputParameters.channelCount = MONO; //g_channels;
     outputParameters.sampleFormat = paFloat32;
     outputParameters.suggestedLatency = 
         Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
@@ -415,6 +423,13 @@ int main( int argc, char *argv[] )
     //Zero out global texture
     memset(&g_texture, 0, sizeof(Texture));
     
+    // Initialize PA data struct values
+    data.frequency = INIT_FREQ;
+    data.sigSrc = OSCILLATOR;
+    data.fmModFreq = INIT_FREQ;
+    data.amModFreq = INIT_FREQ;
+    data.sigWaveType = SINE;
+    
     // Initialize Glut
     initialize_glut(argc, argv);
 
@@ -468,7 +483,12 @@ void keyboardFunc( unsigned char key, int x, int y )
                 glutReshapeWindow( g_last_width, g_last_height );
 
             g_fullscreen = !g_fullscreen;
-            printf("[synthGL]: fullscreen: %s\n", g_fullscreen ? "ON" : "OFF" );
+            printf("[synthesizer]: fullscreen: %s\n", g_fullscreen ? "ON" : "OFF" );
+            break;
+        //Select mode
+        case 'B':
+            data.sigSrc = (data.sigSrc + 1) % NUM_MODES;
+            printf("[synthesizer]: MODE = %d\n", data.sigSrc);
             break;
         //Decrease volume
         case 'z':
@@ -558,19 +578,19 @@ void specialUpKey( int key, int x, int y) {
     // Check which (arrow) key is unpressed
     switch(key) {
         case GLUT_KEY_LEFT : // Arrow key left is unpressed
-            printf("[synthGL]: LEFT\n");
+            printf("[synthesizer]: LEFT\n");
             g_key_rotate_y = false;
             break;
         case GLUT_KEY_RIGHT :    // Arrow key right is unpressed
-            printf("[synthGL]: RIGHT\n");
+            printf("[synthesizer]: RIGHT\n");
             g_key_rotate_y = false;
             break;
         case GLUT_KEY_UP :        // Arrow key up is unpressed
-            printf("[synthGL]: UP\n");
+            printf("[synthesizer]: UP\n");
             g_key_rotate_x = false;
             break;
         case GLUT_KEY_DOWN :    // Arrow key down is unpressed
-            printf("[synthGL]: DOWN\n");
+            printf("[synthesizer]: DOWN\n");
             g_key_rotate_x = false;
             break;   
     }
