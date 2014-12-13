@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <SOIL/SOIL.h>
 #include <portaudio.h>
+#include <sndfile.h>
 #include "sigProcessing.h"
 
 // OpenGL
@@ -226,7 +227,50 @@ static int paCallback( const void *inputBuffer,
 {
 
     //TODO - Implement audio processing
-    //
+
+    //Cast void pointers
+    float *out = (float *)outputBuffer;
+    paData *audioData = (paData *)userData;
+
+    //1. Get audio data if audio file or frequency if oscillator (based on mode)
+    
+    if (audioData->sigSrc == SOUNDFILE)
+    {
+        //TODO - read data from sound file into buffer
+    }
+    else
+    {
+        //generate proper wave type
+        switch (audioData->sigWaveType)
+        {
+            case SINE:
+                //TODO - create sine wave
+                break;
+            case SAWTOOTH:
+                //TODO - create sawtooth wave
+                break;
+            case SQUARE:
+                //TODO - create square wave
+                break;
+            case TRIANGLE:
+                //TODO - create triangle wave
+                break;
+        }
+    }
+    
+
+    //2. Perform AM Modulation
+
+    //3. Perform FM Modulation
+    
+    //4. Perform delay based on delay length. Store delayed signal in separate tmp buffer
+
+    //5. Mix dry signal with delayed signal appropriately
+
+    //6. Scale levels appropriately
+    
+    //7. Apply volume
+    
     g_ready = true;
     return 0;
 }
