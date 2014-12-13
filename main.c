@@ -62,6 +62,16 @@
 #define INIT_HEIGHT             600
 #define ROTATION_INCR           .75f
 
+//Signal Thresholds
+#define DELAY_LEN_MIN           0
+#define DELAY_LEN_MAX           1000
+#define AM_FREQ_MAX             400
+#define AM_FREQ_MIN             0
+#define AM_FREQ_INC             5
+#define FM_FREQ_MAX             400
+#define FM_FREQ_MIN             0
+#define FM_FREQ_INC             5
+
 /**************************************
  *********** </'#define's> ************
  **************************************/
@@ -75,8 +85,9 @@
 typedef double  MY_TYPE;
 typedef char BYTE;   // 8-bit unsigned entity.
 
-//PortAudio - struct
+//PortAudio - structs
 PaStream *g_stream;
+paData data;
 
 //PortAudio - additional variables
 GLint g_buffer_size = BUFFER_SIZE;
@@ -310,7 +321,7 @@ void initialize_audio() {
             &inputParameters,
             &outputParameters,
             SAMPLING_RATE, g_buffer_size, paNoFlag, 
-            paCallback, NULL );
+            paCallback, &data);
 
     if (err != paNoError) {
         printf("PortAudio error: open stream: %s\n", Pa_GetErrorText(err));
@@ -415,6 +426,50 @@ void keyboardFunc( unsigned char key, int x, int y )
             g_fullscreen = !g_fullscreen;
             printf("[synthGL]: fullscreen: %s\n", g_fullscreen ? "ON" : "OFF" );
             break;
+        //Decrease volume
+        case 'z':
+            data.volume++;
+            break;
+        //Increase volume
+        case 'x':
+            data.volume--;
+            break;
+        //Change wave type
+        case 'c':
+            data.sigWaveType = (data.sigWaveType + 1) % 4;
+            break;
+        //Add AM Modulation
+        case 'Z':
+            if (data.amModFreq <= (AM_FREQ_INC + AM_FREQ_MIN))
+                data.amModFreq = AM_FREQ_MIN;
+            else
+                data.amModFreq -= AM_FREQ_INC;
+            break;
+        //Subtract AM Modulation
+        case 'X':
+            if (data.amModFreq >= (AM_FREQ_MAX - AM_FREQ_INC))
+                data.amModFreq = AM_FREQ_MAX;
+            else
+                data.amModFreq -= AM_FREQ_INC;
+            break;
+        //Add FM Modulation
+        case 'N':
+            if (data.fmModFreq <= (FM_FREQ_INC + FM_FREQ_MIN))
+                data.fmModFreq = FM_FREQ_MIN;
+            else
+                data.fmModFreq -= FM_FREQ_INC;
+            break;
+        //Subtract AM Modulation
+        case 'M':
+            if (data.fmModFreq >= (FM_FREQ_MAX - FM_FREQ_INC))
+                data.fmModFreq = FM_FREQ_MAX;
+            else
+                data.fmModFreq -= FM_FREQ_INC;
+            break;
+
+
+
+
 
         case 'q':
             // Close Stream before exiting
@@ -512,41 +567,7 @@ void reshapeFunc( int w, int h )
 //-----------------------------------------------------------------------------
 void initialize_graphics()
 {
-    /*
-     * glClearColor(0.0f, 0.0f, 0.0f, 0.0f);                 // Black Background
-    // set the shading model to 'smooth'
-    glShadeModel( GL_SMOOTH );
-    // enable depth
-    glEnable( GL_DEPTH_TEST );
-    // set the front faces of polygons
-    glFrontFace( GL_CCW );
-    // set fill mode
-    glPolygonMode( GL_FRONT_AND_BACK, g_fillmode );
-    // enable lighting
-    glEnable( GL_LIGHTING );
-    // enable lighting for front
-    glLightModeli( GL_FRONT_AND_BACK, GL_TRUE );
-    // material have diffuse and ambient lighting 
-    glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
-    // enable color
-    glEnable( GL_COLOR_MATERIAL );
-    // normalize (for scaling)
-    glEnable( GL_NORMALIZE );
-    // line width
-    glLineWidth( g_linewidth );
-
-    // enable light 0
-    glEnable( GL_LIGHT0 );
-
-    // setup and enable light 1
-    glLightfv( GL_LIGHT1, GL_AMBIENT, g_light1_ambient );
-    glLightfv( GL_LIGHT1, GL_DIFFUSE, g_light1_diffuse );
-    glLightfv( GL_LIGHT1, GL_SPECULAR, g_light1_specular );
-    glEnable( GL_LIGHT1 );
-    */
-
-
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);                 //Black Background
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);                 //Black Background
     // enable depth
     glEnable( GL_DEPTH_TEST );
     // set fill mode
@@ -736,7 +757,7 @@ void drawScreen(SAMPLE *buffer)
     glPushMatrix();
     {
         // Translate
-        glTranslatef(x + g_texture.center.x + g_tex_incr.x, y + g_texture.center.y + g_tex_incr.y, -200.0f);
+        glTranslatef(x + g_texture.center.x + g_tex_incr.x, y + g_texture.center.y + g_tex_incr.y, -250.0f);
 
         //Rotate
         rotateView();
