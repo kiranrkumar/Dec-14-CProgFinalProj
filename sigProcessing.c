@@ -26,14 +26,29 @@
 
 #define TABLE_SIZE 123 //cover ASCII values to allow for computer keyboard note generation
 
-void setDelayLen (float delayLen)
+void setDelayLen (float delayLen, paData *data, float sampleRate)
 {
-    //TODO
+    int delayInSamples = (int)((delayLen / 1000) * sampleRate);
+    data->delayLen = delayInSamples;
 }
 
 void mixDelaySig (float pctWet, float pctDry)
 {
     //TODO
+}
+
+void createDelayBuffer (float *buffer, int bufferLen)
+{
+        buffer = (float *)malloc(bufferLen * sizeof(float));
+        for (int i = 0; i < bufferLen; i++)
+        {
+            buffer[i] = 0;
+        }
+}
+
+void freeDelayBuffer (float *buffer)
+{
+    free(buffer);
 }
 
 void AMmodulate (float modFreq)
@@ -143,20 +158,4 @@ void createSquareWave (float freq, float *buffer, int numSamples,
 }
 
 
-void freeKeyMap(noteInfo **keyMap)
-{
-    //loop index
-    int i;
 
-    //free each non-null element, 
-    for (i = 0; i < TABLE_SIZE; i++)
-    {
-        if (keyMap[i] != NULL)
-        {
-            free(keyMap[i]);
-        }
-    }
-
-    //free the array itself
-    free(keyMap);
-}

@@ -104,6 +104,8 @@ GLint g_buffer_size = BUFFER_SIZE;
 SAMPLE g_buffer[BUFFER_SIZE];
 unsigned int g_channels = STEREO;
 
+float *delayBuffer;
+
 //OpenGL - structs
 typedef struct {
     int x;
@@ -176,12 +178,17 @@ Pos g_tex_incr = {0,0};
  **********</Global variables>*********
  **************************************/
 
+void initDelayBuffer(float *buffer, int bufferLen)
+{
+
+}
 
 /**************************************
  *********Function Prototypes**********
  **************************************/
 
 void initMapOfKeys(noteInfo **map);
+void freeMapOfKeys(noteInfo **map);
 
 //PortAudio Functions
 void initialize_audio();
@@ -222,7 +229,7 @@ void help()
     printf( "----------------------------------------------------\n" );
     printf( "'H' - print this help message\n" );
     printf( "'F' - toggle fullscreen\n" );
-    printf( "'Q' - quit\n" );
+    printf( "'q' - quit\n" );
     printf( "----------------------------------------------------\n" );
     printf( "\n" );
 }
@@ -239,6 +246,8 @@ static int paCallback( const void *inputBuffer,
 {
 
     //TODO - Implement audio processing
+    
+    int i, j;
 
     //Cast void pointers
     float *out = (float *)outputBuffer;
@@ -253,6 +262,9 @@ static int paCallback( const void *inputBuffer,
     static float prevPhase = 0;
     static int triDirection = 1;
 
+    //delay
+    static int readPtr = 0;
+
     //1. Get audio data if audio file or frequency if oscillator (based on mode)
     
     if (audioData->sigSrc == SOUNDFILE)
@@ -261,28 +273,28 @@ static int paCallback( const void *inputBuffer,
     }
     else if (audioData->sigSrc == MICROPHONE)
     {
-        //TODO - read microphone input into buffer
+        //(FINISHED) read microphone input into buffer
         memcpy(tmp, in, framesPerBuffer * sizeof(float));
     }
     else
     {
-        //generate proper wave type
+        //(FINISHED) generate proper wave type
         switch (audioData->sigWaveType)
         {
             case SINE:
-                //TODO - create sine wave
+                //create sine wave
                 createSineWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
                 break;
             case SAWTOOTH:
-                //TODO - create sawtooth wave
+                //create sawtooth wave
                 createSawWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
                 break;
             case SQUARE:
-                //TODO - create square wave
+                //create square wave
                 createSquareWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
                 break;
             case TRIANGLE:
-                //TODO - create triangle wave
+                //create triangle wave
                 createTriangleWave(audioData->frequency, tmp, framesPerBuffer, 
                         SAMPLING_RATE, &phase, &prevPhase, &triDirection);
 
@@ -297,6 +309,20 @@ static int paCallback( const void *inputBuffer,
     
     //4. Perform delay based on delay length. Store delayed signal in separate tmp buffer
 
+    readPtr += (audioData->delayLen - audioData->prevDelayLen) % framesPerBuffer;
+    j = readPtr;
+    printf("Delay: %d  Previous Delay: %d  Readpointer: %d\n", audioData->delayLen, audioData->prevDelayLen, readPtr);
+    for (i = 0; i < framesPerBuffer; i++)
+    {
+        delayBuffer[j] = tmp[i];
+        j = (j + 1) % framesPerBuffer;
+        //printf("tmp[i]: %f\n", tmp[i]);
+        //printf("delayBuffer[i]: %f\n", delayBuffer[i]);
+        printf("j: %d\n", j);
+    }
+
+    audioData->prevDelayLen = audioData->delayLen;
+
     //5. Mix dry signal with delayed signal appropriately
 
     //6. Scale levels appropriately
@@ -305,8 +331,7 @@ static int paCallback( const void *inputBuffer,
     
     //8. Apply ADSR envelope
 
-    //9. Copy contents of temporary buffer into output buffer
-    
+    //(FINISHED) 9. Copy contents of temporary buffer into output buffer
     memcpy(out, tmp, framesPerBuffer * sizeof(float));
     
     g_ready = true;
@@ -438,18 +463,18 @@ void stop_portAudio() {
     }
 }
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------MAIN FUNCTION-----------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
+//=============================================================================
+//=============================================================================
+//====================== MAIN FUNCTION ========================================
+//=============================================================================
+//=============================================================================
 // Name: main
 // Desc: ...
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
+//=============================================================================
+//=============================================================================
+//=============================================================================
+//=============================================================================
+//=============================================================================
 int main( int argc, char *argv[] )
 {
     //Zero out global texture
@@ -465,6 +490,15 @@ int main( int argc, char *argv[] )
     data.fmModFreq = INIT_MOD_FREQ;
     data.amModFreq = INIT_MOD_FREQ;
     data.sigWaveType = SINE;
+    data.delayLen = 100;
+    data.prevDelayLen = 0;
+    //initDelayBuffer(delayBuffer, BUFFER_SIZE);
+    delayBuffer = (float *)malloc(BUFFER_SIZE * sizeof(float));
+    for (int i = 0; i < BUFFER_SIZE; i++)
+    {
+        delayBuffer[i] = 0;
+    }
+
     
     // Initialize Glut
     initialize_glut(argc, argv);
@@ -574,9 +608,10 @@ void keyboardFunc( unsigned char key, int x, int y )
                     data.fmModFreq -= FM_FREQ_INC;
                 break;
     
-            case 'Q':
+            case 'q':
                 // Close Stream before exiting
                 stop_portAudio();
+                freeMapOfKeys(keyMap);
                 exit( 0 );
             break;
         }
@@ -705,21 +740,6 @@ void displayFunc( )
 
     // Hand off to audio callback thread
     g_ready = false;
-
-   
-    // TODO: Draw the signals on the screeen
-    //
-    //
-    /*********************************
-     **********<Kiran's Code>*********
-     *********************************/
-
-    //draw the compiled audio signal
-    //drawTimeDomainSignal(buffer, 0., 1., 1., 1., 1.);
-
-    /*********************************
-     **********</Kiran's Code>********
-     *********************************/
 
     drawScreen(buffer);
 
@@ -964,6 +984,25 @@ void initMapOfKeys(noteInfo **map)
     keyMap[';'] = (noteInfo*)malloc(sizeof(noteInfo));
     keyMap[';']->noteName = "C5";
     keyMap[';']->frequency = 523.25;
+
+}
+
+void freeMapOfKeys(noteInfo **map)
+{
+    //loop index
+    int i;
+
+    //free each non-null element, 
+    for (i = 0; i < TABLE_SIZE; i++)
+    {
+        if (map[i] != NULL)
+        {
+            free(map[i]);
+        }
+    }
+
+    //free the array itself
+    free(map);
 
 }
 

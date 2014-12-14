@@ -54,7 +54,9 @@ typedef struct {
     float pitchShift;
     float amModFreq;
     float fmModFreq;
-    float delayLen;
+    int delayLen; //int because this is in samples
+    int prevDelayLen;
+    float *delayBuffer;
     float delayPctDry;
     float delayPctWet;
     sigSource sigSrc;
@@ -71,9 +73,13 @@ typedef struct {
 
 /****** Delay effects ******/
 
-void setDelayLen (float delayLen);
+void setDelayLen (float delayLen, paData *data, float sampleRate);
 
 void mixDelaySig (float pctWet, float pctDry);
+
+void createDelayBuffer (float *buffer, int bufferLen);
+
+void freeDelayBuffer (float *buffer);
 
 /**** Amplitude and Frequency Modulation effects ****/ 
 
@@ -92,10 +98,5 @@ void createSawWave (float freq, float *buffer, int numSamples,
 
 void createSquareWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase);
-
-
-/*** Allow user to play notes using the computer keyboard ***/
-
-void freeKeyMap(noteInfo **keyMap);
 
 
