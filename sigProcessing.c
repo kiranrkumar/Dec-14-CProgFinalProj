@@ -67,90 +67,81 @@ void createSineWave(float freq, float *buffer, int numSamples, float sampleRate,
     }
 }
 
-void initKeyMap(noteInfo **keyMap)
+void createTriangleWave (float freq, float *buffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase, int *direction)
 {
-    /*
-    //initialize array of noteInfo pointers
-    keyMap = (noteInfo**) malloc(TABLE_SIZE * sizeof(noteInfo*)); 
-    
-    //loop index
-    int i;
+        int periodInsamples = sampleRate / freq;
+        int i;
+        float sample;
 
-    //start by initializing everything to NULL for simplicity's sake
-    for (i = 0; i < TABLE_SIZE; i++)
-    {
-        keyMap[i] = NULL;
-    }
+        for (i = 0; i < numSamples; i++)
+        {
+            //calculate the phase using the current direction of the slope
+            *phase = *direction * (4. / periodInsamples) + *prevPhase;
+            sample = *phase;
+            *prevPhase = *phase;
 
-    //now set frequency and channel values for the appropriate keys
-    
+            //Flip the slope's sign if it crosses 1 or -1
+            if (abs(*phase) >= 1)
+            {
+                //Cap the maximum of the absolute value of the phase at 1
+                *prevPhase = *direction;
+                *phase = *prevPhase;
+                sample = *phase;
+                *direction *= -1;
+            }
 
-    keyMap['a'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['a']->noteName = "A3";
-    keyMap['a']->frequency = 220.0;
-
-    keyMap['s'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['s']->noteName = "B3";
-    keyMap['s']->frequency = 246.9;
-
-    keyMap['d'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['d']->noteName = "C#4";
-    keyMap['d']->frequency = 277.2;
-
-    keyMap['f'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['f']->noteName = "D4";
-    keyMap['f']->frequency = 293.7;
-
-    keyMap['q'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['q']->noteName = "E4";
-    keyMap['q']->frequency = 329.6;
-
-    keyMap['w'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['w']->noteName = "F#4";
-    keyMap['w']->frequency = 370.0;
-
-    keyMap['e'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['e']->noteName = "G#4";
-    keyMap['e']->frequency = 415.3;
-
-    keyMap['r'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['r']->noteName = "A4";
-    keyMap['r']->frequency = 440.0;
-
-    keyMap['j'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['j']->noteName = "A4";
-    keyMap['j']->frequency = 440.0;
-
-    keyMap['k'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['k']->noteName = "B4";
-    keyMap['k']->frequency = 493.9;
-
-    keyMap['l'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['l']->noteName = "C#5";
-    keyMap['l']->frequency = 554.4;
-
-    keyMap[';'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap[';']->noteName = "D5";
-    keyMap[';']->frequency = 587.3;
-
-    keyMap['u'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['u']->noteName = "E5";
-    keyMap['u']->frequency = 659.3;
-
-    keyMap['i'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['i']->noteName = "F#5";
-    keyMap['i']->frequency = 740.0;
-
-    keyMap['o'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['o']->noteName = "G#5";
-    keyMap['o']->frequency = 830.6;
-
-    keyMap['p'] = (noteInfo*)malloc(sizeof(noteInfo));
-    keyMap['p']->noteName = "A5";
-    keyMap['p']->frequency = 880;
-    */
+            buffer[i] = sample;
+        }
 
 }
+
+void createSawWave(float freq, float *buffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase)
+{
+    int periodInSamples = sampleRate / freq;
+    int i;
+    float sample;
+
+    for (i = 0; i < numSamples; i++)
+    {
+        *phase = 2. / periodInSamples + *prevPhase;
+        sample = *phase;
+
+        //move the *phase back down to -1 once it crosses 1
+        if (*phase >= 1)
+        {
+            *phase = -1;
+        }
+        *prevPhase = *phase;
+
+        buffer[i] = sample;
+    }
+    
+}
+
+void createSquareWave (float freq, float *buffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase)
+{
+    int periodInSamples = sampleRate / freq;
+    int i;
+    float sample;
+
+    for (i = 0; i < numSamples; i++)
+    {
+        *phase = *prevPhase + 1;
+
+        if ( (int) *phase % periodInSamples < (periodInSamples / 2))
+            sample = 1;
+        else
+            sample = -1;
+
+        *prevPhase = *phase;
+
+        buffer[i] = sample;
+    }
+}
+
 
 void freeKeyMap(noteInfo **keyMap)
 {

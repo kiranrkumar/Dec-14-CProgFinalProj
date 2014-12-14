@@ -16,10 +16,10 @@
  * =====================================================================================
  */
 
-<<<<<<< Updated upstream
+//<<<<<<< Updated upstream
 //Yooooooooooooooooooooooooooooooooooooooooooooooooooooooooo!!!!!!!!!!!
-=======
->>>>>>> Stashed changes
+//=======
+//>>>>>>> Stashed changes
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -62,7 +62,7 @@
 #define SAMPLING_RATE           44100
 #define MONO                    1
 #define STEREO                  2
-#define INIT_FREQ               440
+#define INIT_FREQ               0
 #define INIT_MOD_FREQ           0
 
 //OpenGL Values
@@ -203,12 +203,6 @@ void rotateView();
 void mouseFunc(int button, int state, int x, int y);
 void mouseMotionFunc(int x, int y);
 
-
-void amModulation(float *currBuffer, float *result, int bufferLen, paData *audioData)
-{
-    float AMfreq = audioData->amModFreq;
-}
-
 /**************************************
  *********</Function Prototypes>*******
  **************************************/
@@ -226,9 +220,9 @@ void help()
     printf( "by Ryan Edwards & Kiran Kumar, 2014\n" );
     printf( "M.M. Music Technology\nNew York University - Class of 2016\n\n" );
     printf( "----------------------------------------------------\n" );
-    printf( "'h' - print this help message\n" );
-    printf( "'f' - toggle fullscreen\n" );
-    printf( "'q' - quit\n" );
+    printf( "'H' - print this help message\n" );
+    printf( "'F' - toggle fullscreen\n" );
+    printf( "'Q' - quit\n" );
     printf( "----------------------------------------------------\n" );
     printf( "\n" );
 }
@@ -257,6 +251,7 @@ static int paCallback( const void *inputBuffer,
     //Phase information for oscillators
     static float phase = 0;
     static float prevPhase = 0;
+    static int triDirection = 1;
 
     //1. Get audio data if audio file or frequency if oscillator (based on mode)
     
@@ -280,12 +275,17 @@ static int paCallback( const void *inputBuffer,
                 break;
             case SAWTOOTH:
                 //TODO - create sawtooth wave
+                createSawWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
                 break;
             case SQUARE:
                 //TODO - create square wave
+                createSquareWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
                 break;
             case TRIANGLE:
                 //TODO - create triangle wave
+                createTriangleWave(audioData->frequency, tmp, framesPerBuffer, 
+                        SAMPLING_RATE, &phase, &prevPhase, &triDirection);
+
                 break;
         }
     }
@@ -457,7 +457,7 @@ int main( int argc, char *argv[] )
 
     //Initialize keyboard mapping
     initMapOfKeys(keyMap);
-    printf("Frequency for note %c is %f\n", keyMap['a']->noteName, keyMap['a']->frequency);
+    printf("Frequency for note %s is %f\n", keyMap['a']->noteName, keyMap['a']->frequency);
     
     // Initialize PA data struct values
     data.frequency = INIT_FREQ;
@@ -959,11 +959,11 @@ void initMapOfKeys(noteInfo **map)
 
     keyMap['l'] = (noteInfo*)malloc(sizeof(noteInfo));
     keyMap['l']->noteName = "B4";
-    keyMap['l']->frequency = 523.3;
+    keyMap['l']->frequency = 493.88;
 
     keyMap[';'] = (noteInfo*)malloc(sizeof(noteInfo));
     keyMap[';']->noteName = "C5";
-    keyMap[';']->frequency = 587.3;
+    keyMap[';']->frequency = 523.25;
 
 }
 

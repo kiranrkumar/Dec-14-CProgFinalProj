@@ -81,10 +81,20 @@ void AMmodulate (float modFreq);
 
 void FMmodulate (float modFreq);
 
-void createSineWave (float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase);
+void createSineWave (float freq, float *buffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase);
+
+void createTriangleWave (float freq, float *buffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase, int *direction);
+
+void createSawWave (float freq, float *buffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase);
+
+void createSquareWave (float freq, float *buffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase);
+
 
 /*** Allow user to play notes using the computer keyboard ***/
-void initKeyMap(noteInfo **keyMap);
 
 void freeKeyMap(noteInfo **keyMap);
 
