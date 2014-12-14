@@ -31,10 +31,6 @@ typedef struct {
     char *noteName;
 } noteInfo;
 
-//Array of noteInfo elements to allow keys
-//on the computer keyboard to play certain notes
-noteInfo **keyMap;
-
 //Audio signal source
 typedef enum signalSource {
     OSCILLATOR,
@@ -85,7 +81,11 @@ void AMmodulate (float modFreq);
 
 void FMmodulate (float modFreq);
 
-/*** Allow user to play notes using the computer keyboard ***/
-void initKeyMap();
+void createSineWave (float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase);
 
-void freeKeyMap();
+/*** Allow user to play notes using the computer keyboard ***/
+void initKeyMap(noteInfo **keyMap);
+
+void freeKeyMap(noteInfo **keyMap);
+
+

@@ -16,7 +16,10 @@
  * =====================================================================================
  */
 
+<<<<<<< Updated upstream
 //Yooooooooooooooooooooooooooooooooooooooooooooooooooooooooo!!!!!!!!!!!
+=======
+>>>>>>> Stashed changes
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -50,6 +53,7 @@
  ************* '#define's *************
  **************************************/
 
+#define TABLE_SIZE              123
 
 //PortAudio Values
 #define FORMAT                  paFloat32
@@ -58,7 +62,8 @@
 #define SAMPLING_RATE           44100
 #define MONO                    1
 #define STEREO                  2
-#define INIT_FREQ               0
+#define INIT_FREQ               440
+#define INIT_MOD_FREQ           0
 
 //OpenGL Values
 #define INIT_WIDTH              800
@@ -92,12 +97,12 @@ typedef char BYTE;   // 8-bit unsigned entity.
 //PortAudio - structs
 PaStream *g_stream;
 paData data;
+noteInfo **keyMap;
 
 //PortAudio - additional variables
 GLint g_buffer_size = BUFFER_SIZE;
 SAMPLE g_buffer[BUFFER_SIZE];
 unsigned int g_channels = STEREO;
-
 
 //OpenGL - structs
 typedef struct {
@@ -176,6 +181,8 @@ Pos g_tex_incr = {0,0};
  *********Function Prototypes**********
  **************************************/
 
+void initMapOfKeys(noteInfo **map);
+
 //PortAudio Functions
 void initialize_audio();
 void stop_portAudio();
@@ -185,6 +192,7 @@ void idleFunc( );
 void displayFunc( );
 void reshapeFunc( int width, int height );
 void keyboardFunc( unsigned char, int, int );
+void keyboardUpFunc (unsigned char, int, int);
 void specialKey( int key, int x, int y );
 void specialUpKey( int key, int x, int y);
 void initialize_graphics( );
@@ -194,6 +202,13 @@ void drawScreen(SAMPLE *buffer);
 void rotateView();
 void mouseFunc(int button, int state, int x, int y);
 void mouseMotionFunc(int x, int y);
+
+
+void amModulation(float *currBuffer, float *result, int bufferLen, paData *audioData)
+{
+    float AMfreq = audioData->amModFreq;
+}
+
 /**************************************
  *********</Function Prototypes>*******
  **************************************/
@@ -236,6 +251,13 @@ static int paCallback( const void *inputBuffer,
     float *in = (float *)inputBuffer;
     paData *audioData = (paData *)userData;
 
+    //Temporary audio buffer
+    float *tmp = (float *)malloc(framesPerBuffer * sizeof(float));
+
+    //Phase information for oscillators
+    static float phase = 0;
+    static float prevPhase = 0;
+
     //1. Get audio data if audio file or frequency if oscillator (based on mode)
     
     if (audioData->sigSrc == SOUNDFILE)
@@ -245,7 +267,7 @@ static int paCallback( const void *inputBuffer,
     else if (audioData->sigSrc == MICROPHONE)
     {
         //TODO - read microphone input into buffer
-        memcpy(out, in, framesPerBuffer * sizeof(float));
+        memcpy(tmp, in, framesPerBuffer * sizeof(float));
     }
     else
     {
@@ -254,6 +276,7 @@ static int paCallback( const void *inputBuffer,
         {
             case SINE:
                 //TODO - create sine wave
+                createSineWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
                 break;
             case SAWTOOTH:
                 //TODO - create sawtooth wave
@@ -268,9 +291,9 @@ static int paCallback( const void *inputBuffer,
     }
     
 
-    //2. Perform AM Modulation
+    //2. Perform FM Modulation
 
-    //3. Perform FM Modulation
+    //3. Perform AM Modulation
     
     //4. Perform delay based on delay length. Store delayed signal in separate tmp buffer
 
@@ -279,6 +302,12 @@ static int paCallback( const void *inputBuffer,
     //6. Scale levels appropriately
     
     //7. Apply volume
+    
+    //8. Apply ADSR envelope
+
+    //9. Copy contents of temporary buffer into output buffer
+    
+    memcpy(out, tmp, framesPerBuffer * sizeof(float));
     
     g_ready = true;
     return 0;
@@ -311,6 +340,8 @@ void initialize_glut(int argc, char *argv[]) {
     glutReshapeFunc( reshapeFunc );
     // set the keyboard function - called on keyboard events
     glutKeyboardFunc( keyboardFunc );
+    // set the keyboard function - called on releasing keyboard keys
+    glutKeyboardUpFunc( keyboardUpFunc );
     // set window's to specialKey callback
     glutSpecialFunc( specialKey );
     // set window's to specialUpKey callback (when the key is up is called)
@@ -423,12 +454,16 @@ int main( int argc, char *argv[] )
 {
     //Zero out global texture
     memset(&g_texture, 0, sizeof(Texture));
+
+    //Initialize keyboard mapping
+    initMapOfKeys(keyMap);
+    printf("Frequency for note %c is %f\n", keyMap['a']->noteName, keyMap['a']->frequency);
     
     // Initialize PA data struct values
     data.frequency = INIT_FREQ;
     data.sigSrc = OSCILLATOR;
-    data.fmModFreq = INIT_FREQ;
-    data.amModFreq = INIT_FREQ;
+    data.fmModFreq = INIT_MOD_FREQ;
+    data.amModFreq = INIT_MOD_FREQ;
     data.sigWaveType = SINE;
     
     // Initialize Glut
@@ -464,85 +499,93 @@ void idleFunc( )
 //-----------------------------------------------------------------------------
 void keyboardFunc( unsigned char key, int x, int y )
 {
-    //printf("key: %c\n", key);
-    switch( key )
+    //float frequencyLocal = 0;
+    if (keyMap[key] != NULL)
     {
-        // Print Help
-        case 'h':
-            help();
-            break;
-
-            // Fullscreen
-        case 'f':
-            if( !g_fullscreen )
-            {
-                g_last_width = g_width;
-                g_last_height = g_height;
-                glutFullScreen();
-            }
-            else
-                glutReshapeWindow( g_last_width, g_last_height );
-
-            g_fullscreen = !g_fullscreen;
-            printf("[synthesizer]: fullscreen: %s\n", g_fullscreen ? "ON" : "OFF" );
-            break;
-        //Select mode
-        case 'B':
-            data.sigSrc = (data.sigSrc + 1) % NUM_MODES;
-            printf("[synthesizer]: MODE = %d\n", data.sigSrc);
-            break;
-        //Decrease volume
-        case 'z':
-            data.volume++;
-            break;
-        //Increase volume
-        case 'x':
-            data.volume--;
-            break;
-        //Change wave type
-        case 'c':
-            data.sigWaveType = (data.sigWaveType + 1) % 4;
-            break;
-        //Add AM Modulation
-        case 'Z':
-            if (data.amModFreq <= (AM_FREQ_INC + AM_FREQ_MIN))
-                data.amModFreq = AM_FREQ_MIN;
-            else
-                data.amModFreq -= AM_FREQ_INC;
-            break;
-        //Subtract AM Modulation
-        case 'X':
-            if (data.amModFreq >= (AM_FREQ_MAX - AM_FREQ_INC))
-                data.amModFreq = AM_FREQ_MAX;
-            else
-                data.amModFreq -= AM_FREQ_INC;
-            break;
-        //Add FM Modulation
-        case 'N':
-            if (data.fmModFreq <= (FM_FREQ_INC + FM_FREQ_MIN))
-                data.fmModFreq = FM_FREQ_MIN;
-            else
-                data.fmModFreq -= FM_FREQ_INC;
-            break;
-        //Subtract AM Modulation
-        case 'M':
-            if (data.fmModFreq >= (FM_FREQ_MAX - FM_FREQ_INC))
-                data.fmModFreq = FM_FREQ_MAX;
-            else
-                data.fmModFreq -= FM_FREQ_INC;
-            break;
-
-
-
-
-
-        case 'q':
-            // Close Stream before exiting
-            stop_portAudio();
-
-            exit( 0 );
-            break;
+        data.frequency = keyMap[key]->frequency;
+        //frequencyLocal = keyMap[key]->frequency;
+        //printf("Hello World\n");
     }
+    else
+    {
+        switch( key )
+        {
+            // Print Help
+            case 'H':
+                help();
+                break;
+
+                // Fullscreen
+            case 'F':
+                if( !g_fullscreen )
+                {
+                    g_last_width = g_width;
+                    g_last_height = g_height;
+                    glutFullScreen();
+                }
+                else
+                    glutReshapeWindow( g_last_width, g_last_height );
+                g_fullscreen = !g_fullscreen;
+                printf("[synthesizer]: fullscreen: %s\n", g_fullscreen ? "ON" : "OFF" );
+                break;
+            //Select mode
+            case 'B':
+                data.sigSrc = (data.sigSrc + 1) % NUM_MODES;
+                printf("[synthesizer]: MODE = %d\n", data.sigSrc);
+                break;
+            //Decrease volume
+            case 'z':
+                data.volume++;
+                break;
+            //Increase volume
+            case 'x':
+                data.volume--;
+                break;
+            //Change wave type
+            case 'c':
+                data.sigWaveType = (data.sigWaveType + 1) % 4;
+                break;
+            //Add AM Modulation
+            case 'Z':
+                if (data.amModFreq <= (AM_FREQ_INC + AM_FREQ_MIN))
+                    data.amModFreq = AM_FREQ_MIN;
+                else
+                    data.amModFreq -= AM_FREQ_INC;
+                break;
+            //Subtract AM Modulation
+            case 'X':
+                if (data.amModFreq >= (AM_FREQ_MAX - AM_FREQ_INC))
+                    data.amModFreq = AM_FREQ_MAX;
+                else
+                    data.amModFreq -= AM_FREQ_INC;
+                break;
+            //Add FM Modulation
+            case 'N':
+                if (data.fmModFreq <= (FM_FREQ_INC + FM_FREQ_MIN))
+                    data.fmModFreq = FM_FREQ_MIN;
+                else
+                    data.fmModFreq -= FM_FREQ_INC;
+                break;
+            //Subtract AM Modulation
+            case 'M':
+                if (data.fmModFreq >= (FM_FREQ_MAX - FM_FREQ_INC))
+                    data.fmModFreq = FM_FREQ_MAX;
+                else
+                    data.fmModFreq -= FM_FREQ_INC;
+                break;
+    
+            case 'Q':
+                // Close Stream before exiting
+                stop_portAudio();
+                exit( 0 );
+            break;
+        }
+    }
+}
+
+void keyboardUpFunc (unsigned char key, int x, int y)
+{
+    
 }
 
 //-----------------------------------------------------------------------------
@@ -673,22 +716,6 @@ void displayFunc( )
 
     //draw the compiled audio signal
     //drawTimeDomainSignal(buffer, 0., 1., 1., 1., 1.);
-    
-    //draw sine wave
-    //memcpy( buffer, g_buffer_sine, g_buffer_size * sizeof(SAMPLE) );
-    //drawTimeDomainSignal(buffer, 3., 5., 1., 0., 0.);
-
-    //draw triangle wave
-    //memcpy( buffer, g_buffer_tri, g_buffer_size * sizeof(SAMPLE) );
-    //drawTimeDomainSignal(buffer, 2., 5., 0., 1., 0.);
-
-    //draw sawtooth wave
-    //memcpy( buffer, g_buffer_saw, g_buffer_size * sizeof(SAMPLE) );
-    //drawTimeDomainSignal(buffer, 1., 5., 0., 0., 1.);
-
-    //draw impulse train
-    //memcpy( buffer, g_buffer_imp, g_buffer_size * sizeof(SAMPLE) );
-    //drawTimeDomainSignal(buffer, 0, 5., 1., 0., 1.);
 
     /*********************************
      **********</Kiran's Code>********
@@ -697,7 +724,7 @@ void displayFunc( )
     drawScreen(buffer);
 
     // flush gl commands
-    glFlush( );
+    glFlush();
 
     // swap the buffers
     glutSwapBuffers( );
@@ -857,4 +884,86 @@ void drawScreen(SAMPLE *buffer)
  **********</Kiran's Code>********
  *********************************/
 
+void initMapOfKeys(noteInfo **map)
+{
+    //initialize array of noteInfo pointers
+    keyMap = (noteInfo**) malloc(TABLE_SIZE * sizeof(noteInfo*)); 
+    
+    //loop index
+    int i;
+
+    //start by initializing everything to NULL for simplicity's sake
+    for (i = 0; i < TABLE_SIZE; i++)
+    {
+        keyMap[i] = NULL;
+    }
+
+    //now set frequency and channel values for the appropriate keys
+    
+
+    keyMap['a'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['a']->noteName = "A3";
+    keyMap['a']->frequency = 220.00;
+
+    keyMap['w'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['w']->noteName = "A#/Bb3";
+    keyMap['w']->frequency = 233.08;
+
+    keyMap['s'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['s']->noteName = "B3";
+    keyMap['s']->frequency = 246.94;
+
+    keyMap['d'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['d']->noteName = "C4";
+    keyMap['d']->frequency = 261.63;
+
+    keyMap['r'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['r']->noteName = "C#/Db4";
+    keyMap['r']->frequency = 277.18;
+
+    keyMap['f'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['f']->noteName = "D4";
+    keyMap['f']->frequency = 293.66;
+
+    keyMap['t'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['t']->noteName = "D#/Eb4";
+    keyMap['t']->frequency = 311.13;
+    
+    keyMap['g'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['g']->noteName = "E4";
+    keyMap['g']->frequency = 329.63;
+
+    keyMap['h'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['h']->noteName = "F4";
+    keyMap['h']->frequency = 349.23;
+
+    keyMap['u'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['u']->noteName = "F#/Gb4";
+    keyMap['u']->frequency = 369.9;
+
+    keyMap['j'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['j']->noteName = "G4";
+    keyMap['j']->frequency = 392.00;
+
+    keyMap['i'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['i']->noteName = "G#/Ab4";
+    keyMap['i']->frequency = 415.30;
+    
+    keyMap['k'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['k']->noteName = "A4";
+    keyMap['k']->frequency = 440.00;
+
+    keyMap['o'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['o']->noteName = "A#/Bb4";
+    keyMap['o']->frequency = 466.16;
+
+    keyMap['l'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap['l']->noteName = "B4";
+    keyMap['l']->frequency = 523.3;
+
+    keyMap[';'] = (noteInfo*)malloc(sizeof(noteInfo));
+    keyMap[';']->noteName = "C5";
+    keyMap[';']->frequency = 587.3;
+
+}
 

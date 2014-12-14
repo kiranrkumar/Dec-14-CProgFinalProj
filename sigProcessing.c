@@ -46,8 +46,30 @@ void FMmodulate (float modFreq)
     //TODO
 }
 
-void initKeyMap()
+void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
 {
+    int i;
+    float sample;
+
+    for (i = 0; i < numSamples; i ++)
+    {
+
+        *phase = 2 * M_PI * freq / sampleRate + *prevPhase;
+        sample = sin(*phase);
+        if (*phase > 2 * M_PI)
+        {
+            *phase -= 2 * M_PI;
+        }
+        *prevPhase = *phase;
+
+        buffer[i] = sample;
+
+    }
+}
+
+void initKeyMap(noteInfo **keyMap)
+{
+    /*
     //initialize array of noteInfo pointers
     keyMap = (noteInfo**) malloc(TABLE_SIZE * sizeof(noteInfo*)); 
     
@@ -126,10 +148,11 @@ void initKeyMap()
     keyMap['p'] = (noteInfo*)malloc(sizeof(noteInfo));
     keyMap['p']->noteName = "A5";
     keyMap['p']->frequency = 880;
+    */
 
 }
 
-void freeKeyMap()
+void freeKeyMap(noteInfo **keyMap)
 {
     //loop index
     int i;
