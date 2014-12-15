@@ -88,7 +88,7 @@ void freeDelayBuffer (float *buffer);
 
 void AMmodulate (float modFreq);
 
-void FMmodulate (float modFreq);
+void FMmodulate (float carrFreq, float harmRatio, float modIn);
 
 void createSineWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase);

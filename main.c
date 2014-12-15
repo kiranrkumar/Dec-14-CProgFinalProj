@@ -328,7 +328,7 @@ static int paCallback( const void *inputBuffer,
     //5. Mix dry signal with delayed signal appropriately
     for (i = 0; i < framesPerBuffer; i++)
     {
-        tmp[i] = tmp[i] * audioData->delayPctDry + delayBuffer[i] * audioData->delayPctWet;
+        tmp[i] = tmp[i] * .01 * audioData->delayPctDry + delayBuffer[i] * .01 * audioData->delayPctWet;
     }
 
     //6. Scale levels appropriately
@@ -503,7 +503,7 @@ int main( int argc, char *argv[] )
     {
         delayBuffer[i] = 0;
     }
-    data.delayPctDry = 1.0;
+    data.delayPctDry = 100;
     data.delayPctWet = 0;
 
     

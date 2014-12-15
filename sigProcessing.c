@@ -67,16 +67,16 @@ void AMmodulate (float modFreq)
 
 void FMmodulate (float carrFreq, float harmRatio, float modIn)
 {
-    float freq1 = carrFreq * harmRatio;
-    float scaleVal = freq1 * modIn;
-    float freq2 = scaleVal + carrFreq
+    //float freq1 = carrFreq * harmRatio;
+    //float scaleVal = freq1 * modIn;
+    //float freq2 = scaleVal + carrFreq
     
-    *phase = 2 * M_PI * freq1 / sampleRate + *prevPhase;
-    sample = sin(*phase);
+    //*phase = 2 * M_PI * freq1 / sampleRate + *prevPhase;
+    //sample = sin(*phase);
     
-    float freqBuff = freq2 + sample;
+    //float freqBuff = freq2 + sample;
     
-    return freqBuff;
+    //return freqBuff;
 }
 
 void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
@@ -88,9 +88,9 @@ void createSineWave(float freq, float *buffer, int numSamples, float sampleRate,
 
     for (i = 0; i < numSamples; i ++)
     {
-        float finalFreq = FMmodulate(freq);
+        //float finalFreq = FMmodulate(freq);
         
-        *phase = 2 * M_PI * finalFreq / sampleRate + *prevPhase;
+        *phase = 2 * M_PI * freq / sampleRate + *prevPhase;
         sample = sin(*phase);
         if (*phase > 2 * M_PI)
         {
@@ -111,8 +111,8 @@ void createTriangleWave (float freq, float *buffer, int numSamples,
 
         for (i = 0; i < numSamples; i++)
         {
-            float finalFreq = FMmodulate(freq);
-            int periodInsamples = sampleRate / finalFreq;
+            //float finalFreq = FMmodulate(freq);
+            int periodInsamples = sampleRate / freq;
             
             //calculate the phase using the current direction of the slope
             *phase = *direction * (4. / periodInsamples) + *prevPhase;
@@ -144,8 +144,8 @@ void createSawWave(float freq, float *buffer, int numSamples,
     {
         //Call FMmodulate here? - Ryan
         //[Kiran] No - this is creating the initial sawtooth wave. We should call FMModulate from main.c within the paCallback function.
-        float finalFreq = FMmodulate(freq);
-        int periodInsamples = sampleRate / finalFreq;
+        //float finalFreq = FMmodulate(freq);
+        int periodInSamples = sampleRate / freq;
         
         *phase = 2. / periodInSamples + *prevPhase;
         sample = *phase;
@@ -165,20 +165,17 @@ void createSawWave(float freq, float *buffer, int numSamples,
 void createSquareWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase)
 {
-<<<<<<< HEAD
     //Call FMmodulate here? - Ryan
     //[Kiran] No - this is creating the initial triangle wave. We should call FMModulate from main.c within the paCallback function.
 
     int periodInSamples = sampleRate / freq;
-=======
->>>>>>> FETCH_HEAD
     int i;
     float sample;
 
     for (i = 0; i < numSamples; i++)
     {
-        float finalFreq = FMmodulate(freq);
-        int periodInsamples = sampleRate / finalFreq;
+        //float finalFreq = FMmodulate(freq);
+        int periodInsamples = sampleRate / freq;
         
         *phase = *prevPhase + 1;
 
