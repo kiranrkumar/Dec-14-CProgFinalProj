@@ -106,12 +106,14 @@ void createSineWave(float freq, float *buffer, int numSamples, float sampleRate,
 void createTriangleWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase, int *direction)
 {
-        int periodInsamples = sampleRate / freq;
         int i;
         float sample;
 
         for (i = 0; i < numSamples; i++)
         {
+            float finalFreq = FMmodulate(freq);
+            int periodInsamples = sampleRate / finalFreq;
+            
             //calculate the phase using the current direction of the slope
             *phase = *direction * (4. / periodInsamples) + *prevPhase;
             sample = *phase;
@@ -135,13 +137,14 @@ void createTriangleWave (float freq, float *buffer, int numSamples,
 void createSawWave(float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase)
 {
-    int periodInSamples = sampleRate / freq;
     int i;
     float sample;
 
     for (i = 0; i < numSamples; i++)
     {
-        //Call FMmodulate here? - Ryan
+        float finalFreq = FMmodulate(freq);
+        int periodInsamples = sampleRate / finalFreq;
+        
         *phase = 2. / periodInSamples + *prevPhase;
         sample = *phase;
 
@@ -160,13 +163,14 @@ void createSawWave(float freq, float *buffer, int numSamples,
 void createSquareWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase)
 {
-    //Call FMmodulate here? - Ryan
-    int periodInSamples = sampleRate / freq;
     int i;
     float sample;
 
     for (i = 0; i < numSamples; i++)
     {
+        float finalFreq = FMmodulate(freq);
+        int periodInsamples = sampleRate / finalFreq;
+        
         *phase = *prevPhase + 1;
 
         if ( (int) *phase % periodInSamples < (periodInSamples / 2))
