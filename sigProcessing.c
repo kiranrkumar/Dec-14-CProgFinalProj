@@ -71,11 +71,20 @@ void FMmodulate (float carrFreq, float harmRatio, float modIn)
     float scaleVal = freq1 * modIn;
     float freq2 = scaleVal + carrFreq
     
+    //[Kiran] - The variables 'phase', 'sampleRate' and 'prevPhase' don't exist in this function. If you want to use them,
+    //you'll have to make them input parameters for the function just like with the wave functions below
     *phase = 2 * M_PI * freq1 / sampleRate + *prevPhase;
+
+    //you have to declare 'sample' as a float variable before you can use it
     sample = sin(*phase);
     
+    //[Kiran] - What exactly are you trying to accomplish here? You're declaring and initializing this variable as a float,
+    //but you called it 'freqBuff' which makes me think you're trying to create an entire buffer (array) of flat values. If
+    //it's the latter, then this line of code doesn't make sense.
     float freqBuff = freq2 + sample;
     
+    //[Kiran] - you can't return a value in a void function. Either change the type of the function to the type you want to return
+    //(e.g. float or float*) or pass freqBuff as a parameter
     return freqBuff;
 }
 
