@@ -62,7 +62,7 @@ void freeDelayBuffer (float *buffer)
 void AMmodulate (float modFreq)
 {
     //Multiply wave buffer by AM modulator buffer here? - Ryan
-    //TODO
+    //[Kiran] - Yup. Can you add a float buffer pointer as a parameter to this function? (both in the .h and .c sigProcessing files)
 }
 
 void FMmodulate (float carrFreq, float harmRatio, float modIn)
@@ -142,6 +142,7 @@ void createSawWave(float freq, float *buffer, int numSamples,
     for (i = 0; i < numSamples; i++)
     {
         //Call FMmodulate here? - Ryan
+        //[Kiran] No - this is creating the initial sawtooth wave. We should call FMModulate from main.c within the paCallback function.
         *phase = 2. / periodInSamples + *prevPhase;
         sample = *phase;
 
@@ -161,6 +162,8 @@ void createSquareWave (float freq, float *buffer, int numSamples,
         float sampleRate, float *phase, float *prevPhase)
 {
     //Call FMmodulate here? - Ryan
+    //[Kiran] No - this is creating the initial triangle wave. We should call FMModulate from main.c within the paCallback function.
+
     int periodInSamples = sampleRate / freq;
     int i;
     float sample;
