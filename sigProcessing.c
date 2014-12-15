@@ -53,23 +53,35 @@ void freeDelayBuffer (float *buffer)
 
 void AMmodulate (float modFreq)
 {
+    //Multiply wave buffer by AM modulator buffer here? - Ryan
     //TODO
 }
 
-void FMmodulate (float modFreq)
+void FMmodulate (float carrFreq, float harmRatio, float modIn)
 {
-    //TODO
+    float freq1 = carrFreq * harmRatio;
+    float scaleVal = freq1 * modIn;
+    float freq2 = scaleVal + carrFreq
+    
+    *phase = 2 * M_PI * freq1 / sampleRate + *prevPhase;
+    sample = sin(*phase);
+    
+    float freqBuff = freq2 + sample;
+    
+    return freqBuff;
 }
 
 void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
+//Hey won't every create_wave function going to need to take the Harmonicity Ratio and Modulation Index? - Ryan
 {
     int i;
     float sample;
 
     for (i = 0; i < numSamples; i ++)
     {
-
-        *phase = 2 * M_PI * freq / sampleRate + *prevPhase;
+        float finalFreq = FMmodulate(freq);
+        
+        *phase = 2 * M_PI * finalFreq / sampleRate + *prevPhase;
         sample = sin(*phase);
         if (*phase > 2 * M_PI)
         {
@@ -120,6 +132,7 @@ void createSawWave(float freq, float *buffer, int numSamples,
 
     for (i = 0; i < numSamples; i++)
     {
+        //Call FMmodulate here? - Ryan
         *phase = 2. / periodInSamples + *prevPhase;
         sample = *phase;
 
@@ -138,6 +151,7 @@ void createSawWave(float freq, float *buffer, int numSamples,
 void createSquareWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase)
 {
+    //Call FMmodulate here? - Ryan
     int periodInSamples = sampleRate / freq;
     int i;
     float sample;
