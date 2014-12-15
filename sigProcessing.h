@@ -57,6 +57,8 @@ typedef struct {
     int delayLen; //delay length in samples
     int delayLenMs; //delay length in milliseconds
     int prevDelayLen;
+    int delayReader;
+    int delayWriter;
     float *delayBuffer;
     float delayPctDry;
     float delayPctWet;

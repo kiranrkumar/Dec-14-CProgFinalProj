@@ -65,6 +65,7 @@
 #define STEREO                  2
 #define INIT_FREQ               0
 #define INIT_MOD_FREQ           0
+#define DEL_BUF_SIZE            (BUFFER_SIZE + SAMPLING_RATE)
 
 //OpenGL Values
 #define INIT_WIDTH              800
@@ -105,8 +106,9 @@ noteInfo **keyMap;
 GLint g_buffer_size = BUFFER_SIZE;
 SAMPLE g_buffer[BUFFER_SIZE];
 unsigned int g_channels = STEREO;
-
 float *delayBuffer;
+int delayReader;
+int delayWriter;
 
 //OpenGL - structs
 typedef struct {
@@ -498,7 +500,7 @@ int main( int argc, char *argv[] )
     data.sigWaveType = SINE;
     data.delayLen = 0;
     data.prevDelayLen = 0;
-    delayBuffer = (float *)malloc(BUFFER_SIZE * sizeof(float));
+    delayBuffer = (float *)malloc(DEL_BUF_SIZE * sizeof(float));
     for (int i = 0; i < BUFFER_SIZE; i++)
     {
         delayBuffer[i] = 0;
@@ -506,6 +508,8 @@ int main( int argc, char *argv[] )
     data.delayPctDry = 100;
     data.delayPctWet = 0;
 
+    data.delayReader = 0;
+    data.delayWriter = 0;
     
     // Initialize Glut
     initialize_glut(argc, argv);
