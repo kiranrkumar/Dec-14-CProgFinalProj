@@ -74,7 +74,7 @@
 #define NUM_MODES               3
 #define DELAY_LEN_MIN           0
 #define DELAY_LEN_MAX           1000//1000 ms = 1 second
-#define DELAY_LEN_INC           5
+#define DELAY_FX_INC           5
 #define AM_FREQ_MAX             400
 #define AM_FREQ_MIN             0
 #define AM_FREQ_INC             5
@@ -583,19 +583,47 @@ void keyboardFunc( unsigned char key, int x, int y )
                 break;
             //Increase delay
             case 'b':
-                if ((data.delayLenMs + DELAY_LEN_INC) > DELAY_LEN_MAX)
+                if ((data.delayLenMs + DELAY_FX_INC) > DELAY_LEN_MAX)
                     setDelayLen(DELAY_LEN_MAX, &data, SAMPLING_RATE);
                 else
-                    addDelayLen(DELAY_LEN_INC, &data, SAMPLING_RATE);
+                    addDelayLen(DELAY_FX_INC, &data, SAMPLING_RATE);
                 printf("[synthesizer]: Delay: %d ms\n", data.delayLenMs);
                 break;
             //Decrease delay
             case 'v':
-                if ((data.delayLenMs - DELAY_LEN_INC) < DELAY_LEN_MIN)
+                if ((data.delayLenMs - DELAY_FX_INC) < DELAY_LEN_MIN)
                     setDelayLen(DELAY_LEN_MIN, &data, SAMPLING_RATE);
                 else
-                    addDelayLen(-DELAY_LEN_INC, &data, SAMPLING_RATE);
+                    addDelayLen(-DELAY_FX_INC, &data, SAMPLING_RATE);
                 printf("[synthesizer]: Delay: %d ms\n", data.delayLenMs);
+                break;
+            //Increase wet (delayed) signal percentage
+            case 'm':
+                if ((data.delayPctWet + DELAY_FX_INC) > 100)
+                {
+                    data.delayPctWet = 100;
+                    data.delayPctDry = 0;
+                }
+                else
+                {
+                    data.delayPctWet += DELAY_FX_INC;
+                    data.delayPctDry -= DELAY_FX_INC;
+                }
+                printf("[synthesizer]: Delay - Dry: %f  Wet: %f\n", data.delayPctDry, data.delayPctWet);
+                break;
+            //Decrease wet (delayed) signal percentage
+            case 'n':
+                if ((data.delayPctWet - DELAY_FX_INC) < 0)
+                {
+                    data.delayPctWet = 0;
+                    data.delayPctDry = 100;
+                }
+                else
+                {
+                    data.delayPctWet -= DELAY_FX_INC;
+                    data.delayPctDry += DELAY_FX_INC;
+                }
+                printf("[synthesizer]: Delay - Dry: %f  Wet: %f\n", data.delayPctDry, data.delayPctWet);
                 break;
             //Change wave type
             case 'c':

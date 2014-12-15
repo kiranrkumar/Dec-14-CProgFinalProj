@@ -81,6 +81,7 @@ void FMmodulate (float carrFreq, float harmRatio, float modIn)
 
 void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
 //Hey won't every create_wave function going to need to take the Harmonicity Ratio and Modulation Index? - Ryan
+//[Kiran] - Maybe just the createSineWave function. To keep things simple, we should let the modulating waves just be sine waves
 {
     int i;
     float sample;
