@@ -30,6 +30,14 @@ void setDelayLen (float delayLen, paData *data, float sampleRate)
 {
     int delayInSamples = (int)((delayLen / 1000) * sampleRate);
     data->delayLen = delayInSamples;
+    data->delayLenMs = delayLen;
+}
+
+void addDelayLen (float delayLen, paData *data, float sampleRate)
+{
+    int delayInSamples = (int)((delayLen / 1000) * sampleRate);
+    data->delayLen += delayInSamples;
+    data->delayLenMs += delayLen;
 }
 
 void mixDelaySig (float pctWet, float pctDry)

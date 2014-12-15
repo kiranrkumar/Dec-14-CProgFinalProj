@@ -54,7 +54,8 @@ typedef struct {
     float pitchShift;
     float amModFreq;
     float fmModFreq;
-    int delayLen; //int because this is in samples
+    int delayLen; //delay length in samples
+    int delayLenMs; //delay length in milliseconds
     int prevDelayLen;
     float *delayBuffer;
     float delayPctDry;
@@ -74,6 +75,8 @@ typedef struct {
 /****** Delay effects ******/
 
 void setDelayLen (float delayLen, paData *data, float sampleRate);
+
+void addDelayLen (float delayLen, paData *data, float sampleRate);
 
 void mixDelaySig (float pctWet, float pctDry);
 

@@ -73,7 +73,8 @@
 //Signal Thresholds
 #define NUM_MODES               3
 #define DELAY_LEN_MIN           0
-#define DELAY_LEN_MAX           1000
+#define DELAY_LEN_MAX           1000//1000 ms = 1 second
+#define DELAY_LEN_INC           5
 #define AM_FREQ_MAX             400
 #define AM_FREQ_MIN             0
 #define AM_FREQ_INC             5
@@ -311,19 +312,23 @@ static int paCallback( const void *inputBuffer,
 
     readPtr += (audioData->delayLen - audioData->prevDelayLen) % framesPerBuffer;
     j = readPtr;
-    printf("Delay: %d  Previous Delay: %d  Readpointer: %d\n", audioData->delayLen, audioData->prevDelayLen, readPtr);
+    //printf("Delay: %d  Previous Delay: %d  Readpointer: %d\n", audioData->delayLen, audioData->prevDelayLen, readPtr);
     for (i = 0; i < framesPerBuffer; i++)
     {
         delayBuffer[j] = tmp[i];
         j = (j + 1) % framesPerBuffer;
         //printf("tmp[i]: %f\n", tmp[i]);
         //printf("delayBuffer[i]: %f\n", delayBuffer[i]);
-        printf("j: %d\n", j);
+        //printf("j: %d\n", j);
     }
 
     audioData->prevDelayLen = audioData->delayLen;
 
     //5. Mix dry signal with delayed signal appropriately
+    for (i = 0; i < framesPerBuffer; i++)
+    {
+        tmp[i] = tmp[i] * audioData->delayPctDry + delayBuffer[i] * audioData->delayPctWet;
+    }
 
     //6. Scale levels appropriately
     
@@ -490,14 +495,15 @@ int main( int argc, char *argv[] )
     data.fmModFreq = INIT_MOD_FREQ;
     data.amModFreq = INIT_MOD_FREQ;
     data.sigWaveType = SINE;
-    data.delayLen = 100;
+    data.delayLen = 0;
     data.prevDelayLen = 0;
-    //initDelayBuffer(delayBuffer, BUFFER_SIZE);
     delayBuffer = (float *)malloc(BUFFER_SIZE * sizeof(float));
     for (int i = 0; i < BUFFER_SIZE; i++)
     {
         delayBuffer[i] = 0;
     }
+    data.delayPctDry = 1.0;
+    data.delayPctWet = 0;
 
     
     // Initialize Glut
@@ -575,6 +581,22 @@ void keyboardFunc( unsigned char key, int x, int y )
             case 'x':
                 data.volume--;
                 break;
+            //Increase delay
+            case 'b':
+                if ((data.delayLenMs + DELAY_LEN_INC) > DELAY_LEN_MAX)
+                    setDelayLen(DELAY_LEN_MAX, &data, SAMPLING_RATE);
+                else
+                    addDelayLen(DELAY_LEN_INC, &data, SAMPLING_RATE);
+                printf("[synthesizer]: Delay: %d ms\n", data.delayLenMs);
+                break;
+            //Decrease delay
+            case 'v':
+                if ((data.delayLenMs - DELAY_LEN_INC) < DELAY_LEN_MIN)
+                    setDelayLen(DELAY_LEN_MIN, &data, SAMPLING_RATE);
+                else
+                    addDelayLen(-DELAY_LEN_INC, &data, SAMPLING_RATE);
+                printf("[synthesizer]: Delay: %d ms\n", data.delayLenMs);
+                break;
             //Change wave type
             case 'c':
                 data.sigWaveType = (data.sigWaveType + 1) % 4;
@@ -612,6 +634,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                 // Close Stream before exiting
                 stop_portAudio();
                 freeMapOfKeys(keyMap);
+                free(delayBuffer);
                 exit( 0 );
             break;
         }
