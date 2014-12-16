@@ -65,7 +65,7 @@ void AMmodulate (float modFreq)
     //[Kiran] - Yup. Can you add a float buffer pointer as a parameter to this function? (both in the .h and .c sigProcessing files)
 }
 
-void FMmodulate (float carrFreq, float harmRatio, float modIn)
+float FMmodulate (float carrFreq, float harmRatio, float modIn, float sampleRate, float phase, float prevPhase)
 {
     float freq1 = carrFreq * harmRatio;
     float scaleVal = freq1 * modIn;
@@ -81,6 +81,7 @@ void FMmodulate (float carrFreq, float harmRatio, float modIn)
     //[Kiran] - What exactly are you trying to accomplish here? You're declaring and initializing this variable as a float,
     //but you called it 'freqBuff' which makes me think you're trying to create an entire buffer (array) of flat values. If
     //it's the latter, then this line of code doesn't make sense.
+    //[Ryan] - I'm not trying to make a buffer. I'm declaring a variable here.
     float freqBuff = freq2 + sample;
     
     //[Kiran] - you can't return a value in a void function. Either change the type of the function to the type you want to return
