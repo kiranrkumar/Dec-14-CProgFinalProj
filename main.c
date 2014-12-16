@@ -3,7 +3,8 @@
  *
  *       Filename:  main2.c
  *
- *    Description:  Second attempt at the main file for Ryan's and Kiran's final project
+ *    Description:  main driver and helper functions for the C Programming final project
+ *                  for Ryan Edwards and Kiran Kumar
  *
  *        Version:  1.0
  *        Created:  12/11/2014 08:13:32
@@ -16,11 +17,6 @@
  * =====================================================================================
  */
 
-//<<<<<<< Updated upstream
-//Yooooooooooooooooooooooooooooooooooooooooooooooooooooooooo!!!!!!!!!!!
-//=======
-//>>>>>>> Stashed changes
-//Comment to test new branch
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -76,7 +72,7 @@
 #define NUM_MODES               3
 #define DELAY_LEN_MIN           0
 #define DELAY_LEN_MAX           1000//1000 ms = 1 second
-#define DELAY_FX_INC           5
+#define DELAY_FX_INC            5
 #define AM_FREQ_MAX             400
 #define AM_FREQ_MIN             0
 #define AM_FREQ_INC             5
@@ -107,8 +103,6 @@ GLint g_buffer_size = BUFFER_SIZE;
 SAMPLE g_buffer[BUFFER_SIZE];
 unsigned int g_channels = STEREO;
 float *delayBuffer;
-int delayReader;
-int delayWriter;
 
 //OpenGL - structs
 typedef struct {
@@ -267,7 +261,8 @@ static int paCallback( const void *inputBuffer,
     static int triDirection = 1;
 
     //delay
-    static int readPtr = 0;
+    static int delayReader = 0;
+    static int delayWriter = 0;
 
     //1. Get audio data if audio file or frequency if oscillator (based on mode)
     
@@ -313,25 +308,24 @@ static int paCallback( const void *inputBuffer,
     
     //4. Perform delay based on delay length. Store delayed signal in separate tmp buffer
 
-    readPtr += (audioData->delayLen - audioData->prevDelayLen) % framesPerBuffer;
-    j = readPtr;
+    delayWriter += (audioData->delayLen - audioData->prevDelayLen);
+    j = delayReader;
+    
     //printf("Delay: %d  Previous Delay: %d  Readpointer: %d\n", audioData->delayLen, audioData->prevDelayLen, readPtr);
     for (i = 0; i < framesPerBuffer; i++)
     {
-        delayBuffer[j] = tmp[i];
-        j = (j + 1) % framesPerBuffer;
+        delayBuffer[delayWriter++] = tmp[i];
+        tmp[i] = tmp[i] * .01 * audioData->delayPctDry + delayBuffer[delayReader++] * .01 * audioData->delayPctWet;
         //printf("tmp[i]: %f\n", tmp[i]);
         //printf("delayBuffer[i]: %f\n", delayBuffer[i]);
         //printf("j: %d\n", j);
+        
+        delayWriter %= DEL_BUF_SIZE;
+        delayReader %= DEL_BUF_SIZE;
     }
+
 
     audioData->prevDelayLen = audioData->delayLen;
-
-    //5. Mix dry signal with delayed signal appropriately
-    for (i = 0; i < framesPerBuffer; i++)
-    {
-        tmp[i] = tmp[i] * .01 * audioData->delayPctDry + delayBuffer[i] * .01 * audioData->delayPctWet;
-    }
 
     //6. Scale levels appropriately
     
@@ -490,7 +484,6 @@ int main( int argc, char *argv[] )
 
     //Initialize keyboard mapping
     initMapOfKeys(keyMap);
-    printf("Frequency for note %s is %f\n", keyMap['a']->noteName, keyMap['a']->frequency);
     
     // Initialize PA data struct values
     data.frequency = INIT_FREQ;
@@ -668,6 +661,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                 stop_portAudio();
                 freeMapOfKeys(keyMap);
                 free(delayBuffer);
+                printf("\n[syntheizer]: Goodbye!\n");
                 exit( 0 );
             break;
         }
