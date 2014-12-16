@@ -62,6 +62,12 @@
 #define INIT_FREQ               0
 #define INIT_MOD_FREQ           0
 #define DEL_BUF_SIZE            (BUFFER_SIZE + SAMPLING_RATE)
+#define VOLUME                  1
+
+//ADSR Values
+#define ATTACK_TIME             100
+#define DECAY_TIME              800
+#define RELEASE_TIME            900
 
 //OpenGL Values
 #define INIT_WIDTH              800
@@ -103,6 +109,10 @@ GLint g_buffer_size = BUFFER_SIZE;
 SAMPLE g_buffer[BUFFER_SIZE];
 unsigned int g_channels = STEREO;
 float *delayBuffer;
+
+bool NOTE_PRESSED = false;
+bool NOTE_RELEASED = false;
+bool NOTE_ON = false;
 
 //OpenGL - structs
 typedef struct {
@@ -264,6 +274,11 @@ static int paCallback( const void *inputBuffer,
     static int delayReader = 0;
     static int delayWriter = 0;
 
+    //attack, decay, and release values
+    static float attackSlope = VOLUME / ATTACK_TIME;
+    static float decaySlope = - (VOLUME / DECAY_TIME);
+    static float releaseSlope = - (VOLUME / RELEASE_TIME);
+
     //1. Get audio data if audio file or frequency if oscillator (based on mode)
     
     if (audioData->sigSrc == SOUNDFILE)
@@ -322,8 +337,46 @@ static int paCallback( const void *inputBuffer,
         
         delayWriter %= DEL_BUF_SIZE;
         delayReader %= DEL_BUF_SIZE;
-    }
 
+
+
+        /*
+        if (audioData->sigSrc == OSCILLATOR)
+        //Apply Attack/Decay or Release
+        {
+
+            if (NOTE_PRESSED)
+            {
+                if (i < ATTACK_TIME)
+                {
+                    tmp[i] *= (VOLUME * 1.5) * (i/ATTACK_TIME);
+                }
+                else if ((i >= ATTACK_TIME) && (i < ATTACK_TIME + DECAY_TIME)) 
+                {
+                    tmp[i] -= (0.5 * ((i - ATTACK_TIME) / DECAY_TIME));
+                }
+                
+                NOTE_PRESSED = false;
+                NOTE_ON = true;
+            }
+            else if (NOTE_RELEASED)
+            {
+                if (i > (framesPerBuffer - RELEASE_TIME))
+                {
+                    tmp[i] *= ((framesPerBuffer - i - RELEASE_TIME) / RELEASE_TIME);
+                }
+    
+                NOTE_RELEASED = false;
+                NOTE_ON = false;
+            }
+            else if (!NOTE_ON)
+            {
+                tmp[i] = 0;
+            }
+        }
+        */
+
+    }
 
     audioData->prevDelayLen = audioData->delayLen;
 
@@ -537,12 +590,15 @@ void idleFunc( )
 //-----------------------------------------------------------------------------
 void keyboardFunc( unsigned char key, int x, int y )
 {
-    //float frequencyLocal = 0;
+    //Check if the key was one of the notes on the synthesizer
     if (keyMap[key] != NULL)
     {
         data.frequency = keyMap[key]->frequency;
-        //frequencyLocal = keyMap[key]->frequency;
-        //printf("Hello World\n");
+        if (!NOTE_PRESSED)
+        {
+            NOTE_PRESSED = true; //direct PortAudio to apply attack and decay time
+            printf("Pressing %c\n", key);
+        }
     }
     else
     {
@@ -670,7 +726,13 @@ void keyboardFunc( unsigned char key, int x, int y )
 
 void keyboardUpFunc (unsigned char key, int x, int y)
 {
-    
+    //Check if the key was one of the notes on the synthesizer
+    if (keyMap[key] != NULL)
+    {
+        NOTE_RELEASED = true; //direct PortAudio to apply release time
+    }
+    printf("Released %c\n", key);
+
 }
 
 //-----------------------------------------------------------------------------
