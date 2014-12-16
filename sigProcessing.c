@@ -59,10 +59,23 @@ void freeDelayBuffer (float *buffer)
     free(buffer);
 }
 
-void AMmodulate (float modFreq)
+void AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
 {
-    //Multiply wave buffer by AM modulator buffer here? - Ryan
-    //[Kiran] - Yup. Can you add a float buffer pointer as a parameter to this function? (both in the .h and .c sigProcessing files)
+    int i;
+    float sample;
+
+    for (i = 0; i < numSamples; i ++)
+    {
+        *phase = 2 * M_PI * modfreq / sampleRate + *prevPhase;
+        sample = sin(*phase);
+        if (*phase > 2 * M_PI)
+        {
+            *phase -= 2 * M_PI;
+        }
+        *prevPhase = *phase;
+
+        AMbuffer[i] = sample;
+    }
 }
 
 float FMmodulate (float carrFreq, float harmRatio, float modIn, float sampleRate, float phase, float prevPhase)
@@ -71,27 +84,15 @@ float FMmodulate (float carrFreq, float harmRatio, float modIn, float sampleRate
     float scaleVal = freq1 * modIn;
     float freq2 = scaleVal + carrFreq
     
-    //[Kiran] - The variables 'phase', 'sampleRate' and 'prevPhase' don't exist in this function. If you want to use them,
-    //you'll have to make them input parameters for the function just like with the wave functions below
     *phase = 2 * M_PI * freq1 / sampleRate + *prevPhase;
 
-    //you have to declare 'sample' as a float variable before you can use it
-    sample = sin(*phase);
-    
-    //[Kiran] - What exactly are you trying to accomplish here? You're declaring and initializing this variable as a float,
-    //but you called it 'freqBuff' which makes me think you're trying to create an entire buffer (array) of flat values. If
-    //it's the latter, then this line of code doesn't make sense.
-    //[Ryan] - I'm not trying to make a buffer. I'm declaring a variable here.
+    float sample = sin(*phase);
     float freqBuff = freq2 + sample;
     
-    //[Kiran] - you can't return a value in a void function. Either change the type of the function to the type you want to return
-    //(e.g. float or float*) or pass freqBuff as a parameter
     return freqBuff;
 }
 
-void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
-//Hey won't every create_wave function going to need to take the Harmonicity Ratio and Modulation Index? - Ryan
-//[Kiran] - Maybe just the createSineWave function. To keep things simple, we should let the modulating waves just be sine waves
+void createSineWave(float freq, float *sinebuffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
 {
     int i;
     float sample;
@@ -108,12 +109,12 @@ void createSineWave(float freq, float *buffer, int numSamples, float sampleRate,
         }
         *prevPhase = *phase;
 
-        buffer[i] = sample;
+        sinebuffer[i] = sample;
 
     }
 }
 
-void createTriangleWave (float freq, float *buffer, int numSamples, 
+void createTriangleWave (float freq, float *tribuffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase, int *direction)
 {
         int i;
@@ -139,21 +140,19 @@ void createTriangleWave (float freq, float *buffer, int numSamples,
                 *direction *= -1;
             }
 
-            buffer[i] = sample;
+            tribuffer[i] = sample;
         }
 
 }
 
-void createSawWave(float freq, float *buffer, int numSamples, 
+void createSawWave(float freq, float *sawbuffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase)
 {
     int i;
     float sample;
 
     for (i = 0; i < numSamples; i++)
-    {
-        //Call FMmodulate here? - Ryan
-        //[Kiran] No - this is creating the initial sawtooth wave. We should call FMModulate from main.c within the paCallback function.
+    {        
         float finalFreq = FMmodulate(freq);
         int periodInsamples = sampleRate / finalFreq;
         
@@ -167,17 +166,15 @@ void createSawWave(float freq, float *buffer, int numSamples,
         }
         *prevPhase = *phase;
 
-        buffer[i] = sample;
+        sawbuffer[i] = sample;
     }
     
 }
 
-void createSquareWave (float freq, float *buffer, int numSamples, 
+void createSquareWave (float freq, float *squarebuffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase)
 {
 <<<<<<< HEAD
-    //Call FMmodulate here? - Ryan
-    //[Kiran] No - this is creating the initial triangle wave. We should call FMModulate from main.c within the paCallback function.
 
     int periodInSamples = sampleRate / freq;
 =======
@@ -199,7 +196,7 @@ void createSquareWave (float freq, float *buffer, int numSamples,
 
         *prevPhase = *phase;
 
-        buffer[i] = sample;
+        squarebuffer[i] = sample;
     }
 }
 
