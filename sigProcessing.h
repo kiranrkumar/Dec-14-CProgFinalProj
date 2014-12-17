@@ -82,8 +82,6 @@ void setDelayLen (float delayLen, paData *data, float sampleRate);
 
 void addDelayLen (float delayLen, paData *data, float sampleRate);
 
-void mixDelaySig (float pctWet, float pctDry);
-
 void createDelayBuffer (float *buffer, int bufferLen);
 
 void freeDelayBuffer (float *buffer);

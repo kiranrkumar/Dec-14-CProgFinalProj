@@ -163,12 +163,6 @@ GLfloat g_linewidth = 2.0f;
 //Texture
 Texture g_texture;
 
-
-
-//SAMPLE g_buffer_sine[BUFFER_SIZE];
-//SAMPLE g_buffer_tri[BUFFER_SIZE];
-//SAMPLE g_buffer_saw[BUFFER_SIZE];
-//SAMPLE g_buffer_imp[BUFFER_SIZE];
 bool g_key_rotate_x = false;
 bool g_key_rotate_y = false;
 GLfloat g_inc_x = 0.0;
@@ -254,10 +248,7 @@ static int paCallback( const void *inputBuffer,
         const PaStreamCallbackTimeInfo* timeInfo,
         PaStreamCallbackFlags statusFlags, void *userData ) 
 {
-
-    //TODO - Implement audio processing
-    
-    int i, j;
+    int i;
 
     //Cast void pointers
     float *out = (float *)outputBuffer;
@@ -326,16 +317,12 @@ static int paCallback( const void *inputBuffer,
     //4. Perform delay based on delay length. Store delayed signal in separate tmp buffer
 
     delayWriter += (audioData->delayLen - audioData->prevDelayLen);
-    
-    //printf("Delay: %d  Previous Delay: %d  Readpointer: %d\n", audioData->delayLen, audioData->prevDelayLen, readPtr);
+
     for (i = 0; i < framesPerBuffer; i++)
     {
         delayBuffer[delayWriter++] = tmp[i];
         tmp[i] = tmp[i] * .01 * audioData->delayPctDry + delayBuffer[delayReader++] * .01 * audioData->delayPctWet;
-        //printf("tmp[i]: %f\n", tmp[i]);
-        //printf("delayBuffer[i]: %f\n", delayBuffer[i]);
-        //printf("j: %d\n", j);
-        
+
         delayWriter %= DEL_BUF_SIZE;
         delayReader %= DEL_BUF_SIZE;
 
@@ -380,7 +367,6 @@ static int paCallback( const void *inputBuffer,
 
         //Apply Volume
         tmp[i] *= data.volume;
-
     }
 
     audioData->prevDelayLen = audioData->delayLen;
@@ -603,7 +589,7 @@ void keyboardFunc( unsigned char key, int x, int y )
         if (!NOTE_PRESSED)
         {
             NOTE_PRESSED = true; //direct PortAudio to apply attack and decay time
-            printf("Pressing %c\n", key);
+            //printf("Pressing %c\n", key);
         }
     }
     else
@@ -635,11 +621,29 @@ void keyboardFunc( unsigned char key, int x, int y )
                 break;
             //Decrease volume
             case 'z':
-                data.volume++;
+                if ( (data.volume * dbToAmplitude(-VOLUME_INC) ) > VOLUME_MIN)
+                {
+                    data.volume *= dbToAmplitude(-VOLUME_INC);
+                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                }
+                else
+                {
+                    data.volume = VOLUME_MIN;
+                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                }
                 break;
             //Increase volume
             case 'x':
-                data.volume--;
+                if ( (data.volume * dbToAmplitude(VOLUME_INC) ) < VOLUME_MAX)
+                {
+                    data.volume *= dbToAmplitude(VOLUME_INC);
+                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                }
+                else
+                {
+                    data.volume = VOLUME_MAX;
+                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                }
                 break;
             //Increase delay
             case 'b':
@@ -737,7 +741,7 @@ void keyboardUpFunc (unsigned char key, int x, int y)
     {
         NOTE_RELEASED = true; //direct PortAudio to apply release time
     }
-    printf("Released %c\n", key);
+    //printf("Released %c\n", key);
 
 }
 

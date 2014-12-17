@@ -45,11 +45,6 @@ void addDelayLen (float delayLen, paData *data, float sampleRate)
     data->delayLenMs += delayLen;
 }
 
-void mixDelaySig (float pctWet, float pctDry)
-{
-    //TODO
-}
-
 void createDelayBuffer (float *buffer, int bufferLen)
 {
         buffer = (float *)malloc(bufferLen * sizeof(float));
@@ -147,18 +142,15 @@ void createSawWave(float freq, float *buffer, int numSamples,
 
     for (i = 0; i < numSamples; i++)
     {
-        //Call FMmodulate here? - Ryan
-        //[Kiran] No - this is creating the initial sawtooth wave. We should call FMModulate from main.c within the paCallback function.
-        //float finalFreq = FMmodulate(freq);
         int periodInSamples = sampleRate / freq;
-        
+
         *phase = 2. / periodInSamples + *prevPhase;
         sample = *phase;
 
         //move the *phase back down to -1 once it crosses 1
         if (*phase >= 1)
         {
-            *phase = -1;
+            *phase -= 1;
         }
         *prevPhase = *phase;
 
@@ -170,21 +162,15 @@ void createSawWave(float freq, float *buffer, int numSamples,
 void createSquareWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase)
 {
-    //Call FMmodulate here? - Ryan
-    //[Kiran] No - this is creating the initial triangle wave. We should call FMModulate from main.c within the paCallback function.
-
     int periodInSamples = sampleRate / freq;
     int i;
     float sample;
 
     for (i = 0; i < numSamples; i++)
     {
-        //float finalFreq = FMmodulate(freq);
-        int periodInsamples = sampleRate / freq;
-        
         *phase = *prevPhase + 1;
 
-        if ( (int) *phase % periodInSamples < (periodInSamples / 2))
+        if ( ( ((int) *phase) % periodInSamples ) < (periodInSamples / 2) )
             sample = 1;
         else
             sample = -1;
