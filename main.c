@@ -62,7 +62,10 @@
 #define INIT_FREQ               0
 #define INIT_MOD_FREQ           0
 #define DEL_BUF_SIZE            (BUFFER_SIZE + SAMPLING_RATE)
-#define VOLUME                  1
+#define VOLUME                  1//amplitude level
+#define VOLUME_INC              .5//in DECIBELS
+#define VOLUME_MIN              (.01)//amplitude level
+#define VOLUME_MAX              1.5//amplitude level
 
 //ADSR Values
 #define ATTACK_TIME             100
@@ -113,6 +116,8 @@ float *delayBuffer;
 bool NOTE_PRESSED = false;
 bool NOTE_RELEASED = false;
 bool NOTE_ON = false;
+
+float curVolume = .6;
 
 //OpenGL - structs
 typedef struct {
@@ -376,6 +381,10 @@ static int paCallback( const void *inputBuffer,
         }
         */
 
+
+        //Apply Volume
+        tmp[i] *= data.volume;
+
     }
 
     audioData->prevDelayLen = audioData->delayLen;
@@ -539,6 +548,7 @@ int main( int argc, char *argv[] )
     initMapOfKeys(keyMap);
     
     // Initialize PA data struct values
+    data.volume = 1.;
     data.frequency = INIT_FREQ;
     data.sigSrc = OSCILLATOR;
     data.fmModFreq = INIT_MOD_FREQ;
@@ -741,7 +751,7 @@ void keyboardUpFunc (unsigned char key, int x, int y)
 //-----------------------------------------------------------------------------
 void specialKey(int key, int x, int y) { 
     // Check which (arrow) key is pressed
-    switch(key) {
+    /*  switch(key) {
         case GLUT_KEY_LEFT : // Arrow key left is pressed
             g_key_rotate_y = true;
             g_inc_y = -ROTATION_INCR;
@@ -758,6 +768,18 @@ void specialKey(int key, int x, int y) {
             g_key_rotate_x = true;
             g_inc_x = ROTATION_INCR;
             break;   
+    }*/
+
+    switch(key) 
+    {
+        case GLUT_KEY_UP: //Increase volume via up arrow
+            if (data.volume >= VOLUME_MAX)
+                data.volume *= dbToAmplitude(VOLUME_INC);
+            break;
+        case GLUT_KEY_DOWN: //Decrease volume via down arrow
+            if (data.volume <= VOLUME_MIN)
+                data.volume *= dbToAmplitude(-VOLUME_INC);
+            break;
     }
 }  
 
@@ -767,7 +789,7 @@ void specialKey(int key, int x, int y) {
 //-----------------------------------------------------------------------------
 void specialUpKey( int key, int x, int y) {
     // Check which (arrow) key is unpressed
-    switch(key) {
+    /*  switch(key) {
         case GLUT_KEY_LEFT : // Arrow key left is unpressed
             printf("[synthesizer]: LEFT\n");
             g_key_rotate_y = false;
@@ -784,7 +806,7 @@ void specialUpKey( int key, int x, int y) {
             printf("[synthesizer]: DOWN\n");
             g_key_rotate_x = false;
             break;   
-    }
+    }*/
 }
 
 //-----------------------------------------------------------------------------

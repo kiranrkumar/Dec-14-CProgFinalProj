@@ -74,6 +74,8 @@ typedef struct {
  *************** Function Prototypes ********************
  ********************************************************/
 
+float dbToAmplitude(float decibel);
+
 /****** Delay effects ******/
 
 void setDelayLen (float delayLen, paData *data, float sampleRate);

@@ -26,6 +26,11 @@
 
 #define TABLE_SIZE 123 //cover ASCII values to allow for computer keyboard note generation
 
+float dbToAmplitude (float decibel)
+{
+    return (float)pow(10, (decibel/10));
+}
+
 void setDelayLen (float delayLen, paData *data, float sampleRate)
 {
     int delayInSamples = (int)((delayLen / 1000) * sampleRate);

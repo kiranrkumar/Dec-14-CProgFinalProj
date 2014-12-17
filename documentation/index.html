@@ -15,40 +15,96 @@
 
 <!--Do not edit anything above this-->
 
-<h1>Title of My Project (This is an h1 header)</h1>
-<h2>Author(s) of Project (This is an h2 header)</h2>
+<h1>A Pretty Nifty Audio Synthesizer</h1>
+<h2>by Ryan Edwards and Kiran Kumar</h2>
 
+<br>
 
-<h3>This is an h3 header</h3>
+<h3>Overview</h3>
 
-<p>This is a bunch of text documenting your final project. It is a user’s manual for 
-your application. Although the structure of your documentation is entirely up to you, 
-it should be incredibly clear to the instructor how your project is to be installed, 
-how it can be configured, and how it can be used. Your documentation should be at 
-least several paragraphs in length, if not several pages. It should not be necessary 
-for us to contact you with questions regarding your project after its submission. 
-Be sure to answer in your documentation any questions you think we might have while 
-testing your work.
+<p>This is an audio synthesizer using PortAudio and OpenGL. It can play both a variety of sounds
+using the computer keyboard as well as manipulate audio input through the computer's microphone
+(or whatever the default input device on your machine is).
+
+<h3>Requirements</h3>
+
+<ol>
+	<li>You must be working on a machine using either Mac OS X or Linux
+	<li>You must have the PortAudio and OpenGL libraries installed
+</ol>
+
+<h3>Setup</h3>
+
+<ol>
+	<li>The following files should be present in order for the program to compile and properly run:
+	<ul>
+		<li>main.c
+		<li>sigProcessing.c
+		<li>sigProcessing.h
+		<li>Makefile
+		<li>Piano.png
+	</ul>
+	
+	<li>In your terminal, navigate to the folder that contains all of the aforementioned components
+	<li>Type 'make' and press the Enter/Return key. The project should compile without errors.
+</ol>
+
+<h3>Running the Program</h3>
+
+<ol>
+	<li>In the terminal, type <font face="consolas">./synthesizer Piano.png</font>
+	<li>Wait for the OpenGL window to load. It will show an image that looks like this:<br>
+	<img src="images/Piano.png"></img>
+	<li>With the OpenGL window remaining in focus, use the appropriate keys on the keyboard to control
+	the various features of the synthesizer, indicated in the red letters in the image 
+	(also see "Controls" subsection below)
+</ol>
+
+<h4>Controls</h4>
+
+<b>Note:</b> These controls are case-sensitive!
+<br>
+<b>Mode</b>
+<ul>
+	<li><font face="consolas"><b>B</b></font> - toggle between one of two different sound source modes:
+	<ul>
+		<li><u>Piano</u> - play notes using keys on your computer keyboard
+		<li><u>Microphone</u> - manipulate sound coming into your computer's default input device (usually the built-in microphone)
+	</ul>
+</ul>
+
+<b>Volume</b>
+<ul>
+	<li><font face="consolas"><b>x</b></font> - increase volume
+	<li><font face="consolas"><b>z</b></font> - decrease volume
+</ul>
+
+<b>Waveform (piano mode only)</b>
+<ul>
+	<li><font face="consolas"><b>c</b></font> - Toggle between one of 4 wave types
+	<ul>
+		<li> Sine
+		<li> Sawtooth
+		<li> Square
+		<li> Triangle
+	</ul>
+</ul>
+
+<b>Delay</b>
+<ul>
+	<li><font face="consolas"><b>b</b></font> - increase the amount of delay (max 1000 ms)
+	<li><font face="consolas"><b>v</b></font> - decrease the amount of delay (min 0 ms)
+	<li><font face="consolas"><b>m</b></font> - increase the percent of the wet (delayed) signal that is played
+	<li><font face="consolas"><b>n</b></font> - decrease the percent of the wet (delayed) signal that is played
+</ul>
+
+<b>Program Execution</b>
+<ul>
+	<li><li><font face="consolas"><b>q</b></font> - quit the program
+</ul>
 
 <p>This is a test link:
 <a href="http://www.nyu.edu/projects/farbood/2618">C Programming Class Website</a>
-
-<p>This is an unordered list:
-<ul>
-   <li>List item 1
-   <li>List item 2
-   <li>List item 3
-</ul>
-
-<p>This is an ordered list:
-<ol>
-   <li>List item 1
-   <li>List item 2
-   <li>List item 3
-</ol>
-
-<p>This is a test image:<br>
-<img src="images/test.gif"></img>
 
 <p>This is preformatted text:
 <pre>
