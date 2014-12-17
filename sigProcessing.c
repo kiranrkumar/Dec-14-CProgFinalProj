@@ -233,5 +233,5 @@ void createFinalWave(float *sinebuffer, float *tribuffer, float *sawbuffer, floa
         out[2*i+1] = finalBuffer[i];
     }
 }
-}
+
 
