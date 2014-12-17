@@ -200,38 +200,205 @@ void createSquareWave (float freq, float *squarebuffer, int numSamples,
     }
 }
 
-void createFinalWave(float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, 
-        float amp)
+void createVoice1(float freq, float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, 
+        float amp1)
 {
     int i;
-    float finalBuffer[numSamples];
-    for (i = 0; i < numSamples; i++)  
+    float finalBuffer1[numSamples];
+
+    if (/*Sine condition here.*/)
     {
-        if (/*Sine condition here.*/)
+        createSineWave(freq);
+        for (i = 0; i < numSamples; i++)  
         {
-            finalBuffer[i] = sineBuffer[i] * AMbuffer[i] / 2;
+            finalBuffer1[i] = sineBuffer[i] * AMbuffer[i];
+            finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
+    }
         
-        if (/*Tri condition here.*/)
+    if (/*Tri condition here.*/)
+    {
+        createTriWave(freq);
+        for (i = 0; i < numSamples; i++)  
         {
-            finalBuffer[i] = triBuffer[i] * AMbuffer[i] / 2;
+            finalBuffer1[i] = triBuffer[i] * AMbuffer[i];
+            finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
-        
-        if (/*Saw condition here.*/)
+    } 
+    
+    if (/*Saw condition here.*/)
+    {
+        createSawWave(freq);
+        for (i = 0; i < numSamples; i++)  
         {
-            finalBuffer[i] = sawBuffer[i] * AMbuffer[i] / 2;
+            finalBuffer1[i] = sawBuffer[i] * AMbuffer[i];
+            finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
-        
-        if (/*Square condition here.*/)
+    } 
+    
+    if (/*Square condition here.*/)
+    {
+        createSquareWave(freq);
+        for (i = 0; i < numSamples; i++)  
         {
-            finalBuffer[i] = squareBuffer[i] * AMbuffer[i] / 2;
+            finalBuffer1[i] = squareBuffer[i] * AMbuffer[i];
+            finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
+    } 
+}
+
+void createVoice2(float freq, float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, 
+        float amp2)
+{
+    int i;
+    float finalBuffer2[numSamples];
+
+    if (/*Sine condition here.*/)
+    {
+        createSineWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer2[i] = sineBuffer[i] * AMbuffer[i];
+            finalBuffer2[i] = finalBuffer2[i] * amp2;
+        }
+    }
         
-        finalBuffer[i] = finalBuffer[i] * amp;
+    if (/*Tri condition here.*/)
+    {
+        createTriWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer2[i] = triBuffer[i] * AMbuffer[i];
+            finalBuffer2[i] = finalBuffer2[i] * amp2;
+        }
+    } 
+    
+    if (/*Saw condition here.*/)
+    {
+        createSawWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer2[i] = sawBuffer[i] * AMbuffer[i];
+            finalBuffer2[i] = finalBuffer2[i] * amp2;
+        }
+    } 
+    
+    if (/*Square condition here.*/)
+    {
+        createSquareWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer2[i] = squareBuffer[i] * AMbuffer[i];
+            finalBuffer2[i] = finalBuffer2[i] * amp2;
+        }
+    } 
+}
+
+void createVoice3(float freq, float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, 
+        float amp3)
+{
+    int i;
+    float finalBuffer3[numSamples];
+
+    if (/*Sine condition here.*/)
+    {
+        createSineWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer3[i] = sineBuffer[i] * AMbuffer[i];
+            finalBuffer3[i] = finalBuffer3[i] * amp3;
+        }
+    }
         
+    if (/*Tri condition here.*/)
+    {
+        createTriWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer3[i] = triBuffer[i] * AMbuffer[i];
+            finalBuffer3[i] = finalBuffer3[i] * amp3;
+        }
+    } 
+    
+    if (/*Saw condition here.*/)
+    {
+        createSawWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer3[i] = sawBuffer[i] * AMbuffer[i];
+            finalBuffer3[i] = finalBuffer3[i] * amp3;
+        }
+    } 
+    
+    if (/*Square condition here.*/)
+    {
+        createSquareWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer3[i] = squareBuffer[i] * AMbuffer[i];
+            finalBuffer3[i] = finalBuffer3[i] * amp3;
+        }
+    } 
+}
+
+void createVoice4(float freq, float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, 
+        float amp4)
+{
+    int i;
+    float finalBuffer4[numSamples];
+
+    if (/*Sine condition here.*/)
+    {
+        createSineWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer4[i] = sineBuffer[i] * AMbuffer[i];
+            finalBuffer4[i] = finalBuffer4[i] * amp4;
+        }
+    }
+        
+    if (/*Tri condition here.*/)
+    {
+        createTriWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer4[i] = triBuffer[i] * AMbuffer[i];
+            finalBuffer4[i] = finalBuffer4[i] * amp4;
+        }
+    } 
+    
+    if (/*Saw condition here.*/)
+    {
+        createSawWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer4[i] = sawBuffer[i] * AMbuffer[i];
+            finalBuffer4[i] = finalBuffer4[i] * amp4;
+        }
+    } 
+    
+    if (/*Square condition here.*/)
+    {
+        createSquareWave(freq);
+        for (i = 0; i < numSamples; i++)  
+        {
+            finalBuffer4[i] = squareBuffer[i] * AMbuffer[i];
+            finalBuffer4[i] = finalBuffer4[i] * amp4;
+        }
+    } 
+}
+
+void createFinalWave(float *finalBuffer1, float *finalBuffer2, float *finalBuffer3, float *finalBuffer4, float ampFinal, int numSamples)
+{
+    float finalBuffer[numSamples];
+    
+    for (i = 0; i < numSamples; i++)
+    {
+        finalBuffer[i] = finalBuffer1[i] + finalBuffer2[i] + finalBuffer3[i] + finalBuffer4[i] / 4;
         out[2*i] = finalBuffer[i];
         out[2*i+1] = finalBuffer[i];
     }
 }
+
 
 
