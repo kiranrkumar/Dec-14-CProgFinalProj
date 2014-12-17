@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  main2.c
+ *       Filename:  main.c
  *
  *    Description:  main driver and helper functions for the C Programming final project
  *                  for Ryan Edwards and Kiran Kumar
@@ -191,10 +191,7 @@ Pos g_tex_incr = {0,0};
  **********</Global variables>*********
  **************************************/
 
-void initDelayBuffer(float *buffer, int bufferLen)
-{
 
-}
 
 /**************************************
  *********Function Prototypes**********
@@ -329,7 +326,6 @@ static int paCallback( const void *inputBuffer,
     //4. Perform delay based on delay length. Store delayed signal in separate tmp buffer
 
     delayWriter += (audioData->delayLen - audioData->prevDelayLen);
-    j = delayReader;
     
     //printf("Delay: %d  Previous Delay: %d  Readpointer: %d\n", audioData->delayLen, audioData->prevDelayLen, readPtr);
     for (i = 0; i < framesPerBuffer; i++)
@@ -884,40 +880,6 @@ void displayFunc( )
     glutSwapBuffers( );
 }
 
-/*********************************
- **********<Kiran's Code>*********
- *********************************/
-
-void drawTimeDomainSignal(SAMPLE *buffer, float yCoord, float yDiv, float red, float green, float blue)
-{
-    int i;
-    // Initialize initial x
-    GLfloat x = -5.0;
-
-    // Calculate increment x
-    GLfloat xinc = fabs((2*x)/g_buffer_size);
-
-    glPushMatrix();
-    {
-        rotateView();
-        glColor3f(red, green, blue);
-
-        glBegin(GL_LINE_STRIP);
-
-        // Draw Full Windowed Time Domain Signal
-        glPushMatrix();
-        glTranslatef(0, yCoord, 0);
-        for (i = 0; i < g_buffer_size; i++)
-        {
-            glVertex3f(x, (2*buffer[i] / yDiv) + yCoord, 0.0f);
-            x += xinc;
-        }
-
-        glEnd();
-
-    }
-    glPopMatrix();
-}
 
 //-----------------------------------------------------------------------------
 // Name: void rotateView ()
@@ -1034,10 +996,6 @@ void drawScreen(SAMPLE *buffer)
     glPopMatrix();
 }
 
-/*********************************
- **********</Kiran's Code>********
- *********************************/
-
 void initMapOfKeys(noteInfo **map)
 {
     //initialize array of noteInfo pointers
@@ -1052,7 +1010,7 @@ void initMapOfKeys(noteInfo **map)
         keyMap[i] = NULL;
     }
 
-    //now set frequency and channel values for the appropriate keys
+    //now set frequency values for the appropriate keys
     
 
     keyMap['a'] = (noteInfo*)malloc(sizeof(noteInfo));
