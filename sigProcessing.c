@@ -200,5 +200,30 @@ void createSquareWave (float freq, float *squarebuffer, int numSamples,
     }
 }
 
-
+void createFinalWave(float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, 
+        float sampleRate)
+{
+    for (i = 0; i < numSamples; i++)  
+    {
+        if (/*Sine condition here.*/)
+        {
+            finalBuffer[i] = sineBuffer[i] * AMbuffer[i] / 2;
+        }
+        
+        if (/*Tri condition here.*/)
+        {
+            finalBuffer[i] = triBuffer[i] * AMbuffer[i] / 2;
+        }
+        
+        if (/*Saw condition here.*/)
+        {
+            finalBuffer[i] = sawBuffer[i] * AMbuffer[i] / 2;
+        }
+        
+        if (/*Square condition here.*/)
+        {
+            finalBuffer[i] = squareBuffer[i] * AMbuffer[i] / 2;
+        }
+    }
+}
 
