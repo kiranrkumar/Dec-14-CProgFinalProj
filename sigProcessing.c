@@ -394,7 +394,7 @@ void createFinalWave(float *finalBuffer1, float *finalBuffer2, float *finalBuffe
     
     for (i = 0; i < numSamples; i++)
     {
-        finalBuffer[i] = finalBuffer1[i] + finalBuffer2[i] + finalBuffer3[i] + finalBuffer4[i] / 4;
+        finalBuffer[i] = (finalBuffer1[i] + finalBuffer2[i] + finalBuffer3[i] + finalBuffer4[i] / 4) * ampFinal;
         out[2*i] = finalBuffer[i];
         out[2*i+1] = finalBuffer[i];
     }
