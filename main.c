@@ -261,11 +261,16 @@ static int paCallback( const void *inputBuffer,
     //Phase information for oscillators
     static float phase = 0;
     static float prevPhase = 0;
+    static float lfoPhase = 0;
+    static float lfoPrevPhase = 0;
     static int triDirection = 1;
 
     //delay
     static int delayReader = 0;
     static int delayWriter = 0;
+    static int lfoReader = 0;
+    static int delayVarReader = 0;
+    float *lfoBuffer;
 
     //attack, decay, and release values
     static float attackSlope = VOLUME / ATTACK_TIME;
