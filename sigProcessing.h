@@ -102,4 +102,5 @@ void createSawWave (float freq, float *buffer, int numSamples,
 void createSquareWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase);
 
+void createFinalWave(float *finalBuffer1, float *finalBuffer2, float *finalBuffer3, float *finalBuffer4, float ampFinal, int numSamples);
 
