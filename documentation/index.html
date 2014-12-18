@@ -27,8 +27,8 @@
 <h3>Overview</h3>
 
 <p>This is an audio synthesizer using PortAudio and OpenGL. It can play both a variety of sounds
-using the computer keyboard as well as manipulate audio input through the computer's microphone
-(or whatever the default input device on your machine is).
+using the computer keyboard as well as use some of the effects to manipulate audio input coming
+through the computer's microphone (or whatever the default input device on your machine is).
 
 <h3>Requirements</h3>
 
@@ -77,7 +77,77 @@ using the computer keyboard as well as manipulate audio input through the comput
 	</ul>
 </ul>
 
-<b>Notes (piano mode only)</b>
+<b>Delay</b>
+<br>
+<ul>
+	<li><font face="consolas"><b>5</b></font> - increase the amount of delay (max 1000 ms)
+	<li><font face="consolas"><b>4</b></font> - decrease the amount of delay (min 0 ms)
+	<li><font face="consolas"><b>7</b></font> - increase the percent of the wet (delayed) signal that is played
+	<li><font face="consolas"><b>6</b></font> - decrease the percent of the wet (delayed) signal that is played
+</ul>
+
+<b>AM Modulation</b>
+<ul>
+	<li><font face="consolas"><b>X</b></font> - increase the frequency of an AM modulator (max 400 Hz)
+	<li><font face="consolas"><b>Z</b></font> - decrease the frequency of an AM modulator (min 0 Hz)
+</ul>
+
+<b><u>Voice 1 (piano mode only)</u></b>
+<br>
+<ul>
+	<li><b>Volume</b>
+	<ul>
+		<li><font face="consolas"><b>x</b></font> - increase volume
+		<li><font face="consolas"><b>z</b></font> - decrease volume
+	</ul>
+	<li><b>Waveform</b>
+	<ul>
+		<li><font face="consolas"><b>c</b></font> - toggle between one of 4 wave types
+		<ul>
+			<li> Sine
+			<li> Sawtooth
+			<li> Square
+			<li> Triangle
+		</ul>
+	</ul>
+	<li><b>FM Modulation</b></li>
+	<ul>
+		<li><font face="consolas"><b>m</b></font> - increase the frequency of an FM modulator (max 400 Hz)
+		<li><font face="consolas"><b>n</b></font> - decrease the frequency of an FM modulator (min 0 Hz)
+		<li><font face="consolas"><b>M</b></font> - increase the amount of FM modulation (max 100 Hz)
+		<li><font face="consolas"><b>N</b></font> - decrease the amount of FM modulation (min 0 Hz)
+	</ul>
+</ul>
+
+<b><u>Voice 2</u></b>
+<br>
+<ul>
+	<li><font face="consolas"><b>p</b></font> - turn voice on/off (works in both piano and microphone modes)
+	<li><b>Volume</b>
+	<ul>
+		<li><font face="consolas"><b>2</b></font> - increase volume
+		<li><font face="consolas"><b>1</b></font> - decrease volume
+	</ul>
+	<li><b>Waveform</b>
+	<ul>
+		<li><font face="consolas"><b>3</b></font> - toggle between one of 4 wave types
+		<ul>
+			<li> Sine
+			<li> Sawtooth
+			<li> Square
+			<li> Triangle
+		</ul>
+	</ul>
+	<li><b>FM Modulation</b></li>
+	<ul>
+		<li><font face="consolas"><b>9</b></font> - increase the frequency of an FM modulator (max 400 Hz)
+		<li><font face="consolas"><b>8</b></font> - decrease the frequency of an FM modulator (min 0 Hz)
+		<li><font face="consolas"><b>(</b></font> - increase the amount of FM modulation (max 100 Hz)
+		<li><font face="consolas"><b>*</b></font> - decrease the amount of FM modulation (min 0 Hz)
+	</ul>
+</ul>
+
+<b>Notes</b>
 <br>
 A subset of keys, indicated on the picture above, will play notes at the appropriate
 frequencies
@@ -86,30 +156,6 @@ frequencies
 	<li><pre>a s d f g h j k l ;</pre>
 </ul>
 
-<b>Volume</b>
-<ul>
-	<li><font face="consolas"><b>x</b></font> - increase volume
-	<li><font face="consolas"><b>z</b></font> - decrease volume
-</ul>
-
-<b>Waveform (piano mode only)</b>
-<ul>
-	<li><font face="consolas"><b>c</b></font> - Toggle between one of 4 wave types
-	<ul>
-		<li> Sine
-		<li> Sawtooth
-		<li> Square
-		<li> Triangle
-	</ul>
-</ul>
-
-<b>Delay</b>
-<ul>
-	<li><font face="consolas"><b>b</b></font> - increase the amount of delay (max 1000 ms)
-	<li><font face="consolas"><b>v</b></font> - decrease the amount of delay (min 0 ms)
-	<li><font face="consolas"><b>m</b></font> - increase the percent of the wet (delayed) signal that is played
-	<li><font face="consolas"><b>n</b></font> - decrease the percent of the wet (delayed) signal that is played
-</ul>
 
 <b>Program Execution</b>
 <ul>
