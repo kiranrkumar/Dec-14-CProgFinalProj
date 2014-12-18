@@ -130,15 +130,17 @@ void createSineWave(float freq, float *buffer, int numSamples, float sampleRate,
 }
 
 void createTriangleWave (float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase, int *direction)
+        float sampleRate, float *phase, float *prevPhase, int *direction, float *FMbuffer)
 {
         int i;
         float sample;
+        float actingFrequency;
 
         for (i = 0; i < numSamples; i++)
         {
             //float finalFreq = FMmodulate(freq);
-            int periodInsamples = sampleRate / freq;
+            actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
+            int periodInsamples = sampleRate / actingFrequency;
             
             //calculate the phase using the current direction of the slope
             *phase = *direction * (4. / periodInsamples) + *prevPhase;
@@ -161,14 +163,16 @@ void createTriangleWave (float freq, float *buffer, int numSamples,
 }
 
 void createSawWave(float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase)
+        float sampleRate, float *phase, float *prevPhase, float *FMbuffer)
 {
     int i;
     float sample;
+    float actingFrequency;
 
     for (i = 0; i < numSamples; i++)
     {
-        int periodInSamples = sampleRate / freq;
+        actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
+        int periodInSamples = sampleRate / actingFrequency;
 
         *phase = 2. / periodInSamples + *prevPhase;
         sample = *phase;
@@ -186,14 +190,16 @@ void createSawWave(float freq, float *buffer, int numSamples,
 }
 
 void createSquareWave (float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase)
+        float sampleRate, float *phase, float *prevPhase, float *FMbuffer)
 {
-    int periodInSamples = sampleRate / freq;
+    int periodInSamples;
     int i;
-    float sample;
+    float sample, actingFrequency;
 
     for (i = 0; i < numSamples; i++)
     {
+        actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
+        periodInSamples = sampleRate / actingFrequency;
         *phase = *prevPhase + 1;
 
         if ( ( ((int) *phase) % periodInSamples ) < (periodInSamples / 2) )

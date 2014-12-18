@@ -312,7 +312,7 @@ static int paCallback( const void *inputBuffer,
     if (VOICE_TWO_ON && (audioData->fmModFreq2 > 0))
     {
         FMbuffer2 = (float *)malloc(framesPerBuffer * sizeof(float));
-        createFMBuffer(audioData->frequency, audioData->fmModFreq2, FM_MOD_INDEX, FMbuffer1, framesPerBuffer, SAMPLING_RATE, &FMphase2, &FMprevPhase2);
+        createFMBuffer(audioData->frequency, audioData->fmModFreq2, FM_MOD_INDEX, FMbuffer2, framesPerBuffer, SAMPLING_RATE, &FMphase2, &FMprevPhase2);
     }
     else
     {
@@ -354,16 +354,16 @@ static int paCallback( const void *inputBuffer,
                 break;
             case SAWTOOTH:
                 //create sawtooth wave
-                createSawWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
+                createSawWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
                 break;
             case SQUARE:
                 //create square wave
-                createSquareWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
+                createSquareWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
                 break;
             case TRIANGLE:
                 //create triangle wave
                 createTriangleWave(audioData->frequency, tmp, framesPerBuffer, 
-                        SAMPLING_RATE, &phase, &prevPhase, &triDirection);
+                        SAMPLING_RATE, &phase, &prevPhase, &triDirection, FMbuffer1);
 
                 break;
         }
@@ -381,16 +381,16 @@ static int paCallback( const void *inputBuffer,
                 break;
             case SAWTOOTH:
                 //create sawtooth wave
-                createSawWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2);
+                createSawWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
                 break;
             case SQUARE:
                 //create square wave
-                createSquareWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2);
+                createSquareWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
                 break;
             case TRIANGLE:
                 //create triangle wave
                 createTriangleWave(audioData->frequency, tmp2, framesPerBuffer, 
-                        SAMPLING_RATE, &phase2, &prevPhase2, &triDirection);
+                        SAMPLING_RATE, &phase2, &prevPhase2, &triDirection, FMbuffer2);
                 break;
         }
 

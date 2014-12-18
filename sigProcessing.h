@@ -100,12 +100,12 @@ void createSineWave (float freq, float *buffer, int numSamples,
         float sampleRate, float *phase, float *prevPhase, float *FMbuffer);
 
 void createTriangleWave (float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase, int *direction);
+        float sampleRate, float *phase, float *prevPhase, int *direction, float *FMbuffer);
 
 void createSawWave (float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase);
+        float sampleRate, float *phase, float *prevPhase, float *FMbuffer);
 
 void createSquareWave (float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase);
+        float sampleRate, float *phase, float *prevPhase, float *FMbuffer);
 
 
