@@ -68,15 +68,9 @@
 #define VOLUME_MIN              (.01)//amplitude level
 #define VOLUME_MAX              1.5//amplitude level
 
-//ADSR Values
-#define ATTACK_TIME             100
-#define DECAY_TIME              800
-#define RELEASE_TIME            900
-
 //OpenGL Values
 #define INIT_WIDTH              800
 #define INIT_HEIGHT             600
-#define ROTATION_INCR           .75f
 
 //Signal Thresholds
 #define NUM_MODES               2
@@ -121,13 +115,7 @@ SAMPLE g_buffer[BUFFER_SIZE];
 unsigned int g_channels = STEREO;
 float *delayBuffer;
 
-bool NOTE_PRESSED = false;
-bool NOTE_RELEASED = false;
-bool NOTE_ON = false;
-
 bool VOICE_TWO_ON = false;
-
-float curVolume = .6;
 
 //OpenGL - structs
 typedef struct {
@@ -178,13 +166,6 @@ bool g_key_rotate_y = false;
 GLfloat g_inc_x = 0.0;
 GLfloat g_inc_y = 0.0;
 
-//For mouse movement
-
-int posX = 0;
-int posY = 0;
-int incrX = 0;
-int incrY = 0;
-
 //Translation
 bool g_translate = false;
 Pos g_tex_init_pos = {0,0};
@@ -213,16 +194,10 @@ void idleFunc( );
 void displayFunc( );
 void reshapeFunc( int width, int height );
 void keyboardFunc( unsigned char, int, int );
-void keyboardUpFunc (unsigned char, int, int);
-void specialKey( int key, int x, int y );
-void specialUpKey( int key, int x, int y);
 void initialize_graphics( );
 void initialize_glut(int argc, char *argv[]);
 void drawTimeDomainSignal(SAMPLE *buffer, float yCoord, float yDiv, float red, float green, float blue);
 void drawScreen(SAMPLE *buffer);
-void rotateView();
-void mouseFunc(int button, int state, int x, int y);
-void mouseMotionFunc(int x, int y);
 
 /**************************************
  *********</Function Prototypes>*******
@@ -232,7 +207,7 @@ void mouseMotionFunc(int x, int y);
 
 //-----------------------------------------------------------------------------
 // name: help()
-// desc: ...
+// desc: display help window to assist with user control of the program
 //-----------------------------------------------------------------------------
 void help()
 {
@@ -244,6 +219,8 @@ void help()
     printf( "'H' - print this help message\n" );
     printf( "'F' - toggle fullscreen\n" );
     printf( "'q' - quit\n" );
+    printf( "----------------------------------------------------\n" );
+    printf( "See the OpenGL window for synthesizer controls\n");
     printf( "----------------------------------------------------\n" );
     printf( "\n" );
 }
@@ -274,9 +251,6 @@ static int paCallback( const void *inputBuffer,
     //Voice 2
     static float phase2 = 0;
     static float prevPhase2 = 0;
-
-    static float lfoPhase = 0;
-    static float lfoPrevPhase = 0;
 
     static float AMphase = 0;
     static float AMprevPhase = 0;
@@ -326,14 +300,6 @@ static int paCallback( const void *inputBuffer,
     //delay
     static int delayReader = 0;
     static int delayWriter = 0;
-    static int lfoReader = 0;
-    static int delayVarReader = 0;
-    float *lfoBuffer;
-
-    //attack, decay, and release values
-    static float attackSlope = VOLUME / ATTACK_TIME;
-    static float decaySlope = - (VOLUME / DECAY_TIME);
-    static float releaseSlope = - (VOLUME / RELEASE_TIME);
 
     //Get audio data if audio file or frequency if oscillator (based on mode)
     
@@ -349,15 +315,18 @@ static int paCallback( const void *inputBuffer,
         {
             case SINE:
                 //create sine wave
-                createSineWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
+                createSineWave(audioData->frequency, tmp, framesPerBuffer, 
+                        SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
                 break;
             case SAWTOOTH:
                 //create sawtooth wave
-                createSawWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
+                createSawWave(audioData->frequency, tmp, framesPerBuffer, 
+                        SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
                 break;
             case SQUARE:
                 //create square wave
-                createSquareWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
+                createSquareWave(audioData->frequency, tmp, framesPerBuffer, 
+                        SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
                 break;
             case TRIANGLE:
                 //create triangle wave
@@ -376,15 +345,18 @@ static int paCallback( const void *inputBuffer,
         {
             case SINE:
                 //create sine wave
-                createSineWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
+                createSineWave(audioData->frequency, tmp2, framesPerBuffer, 
+                        SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
                 break;
             case SAWTOOTH:
                 //create sawtooth wave
-                createSawWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
+                createSawWave(audioData->frequency, tmp2, framesPerBuffer,
+                        SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
                 break;
             case SQUARE:
                 //create square wave
-                createSquareWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
+                createSquareWave(audioData->frequency, tmp2, framesPerBuffer, 
+                        SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
                 break;
             case TRIANGLE:
                 //create triangle wave
@@ -398,7 +370,8 @@ static int paCallback( const void *inputBuffer,
     //Initialize Amplitude Modulation buffer if AM frequency is not 0
     if (audioData->amModFreq != 0)
     {
-        createSineWave(audioData->amModFreq, AMbuffer, framesPerBuffer, SAMPLING_RATE, &AMphase, &AMprevPhase, NULL);
+        createSineWave(audioData->amModFreq, AMbuffer, framesPerBuffer, 
+                SAMPLING_RATE, &AMphase, &AMprevPhase, NULL);
     }
 
     //Shift delayWriter if the delay length has changed
@@ -437,15 +410,15 @@ static int paCallback( const void *inputBuffer,
         //Apply Amplitude Modulation
         tmp[i] *= AMbuffer[i];
 
-        
-        //Apply ADSR?
     }
 
     //set the previous delay equal to the delay so that the delay writer pointer doesn't shift more the necessary
     audioData->prevDelayLen = audioData->delayLen;
 
-    //(FINISHED) 9. Copy contents of temporary buffer into output buffer
+    //Copy contents of temporary buffer into output buffer
     memcpy(out, tmp, framesPerBuffer * sizeof(float));
+
+    //Free dynamically allocated buffers
     free(tmp);
     if (VOICE_TWO_ON)
         free(tmp2);
@@ -485,8 +458,6 @@ void initialize_glut(int argc, char *argv[]) {
     glutReshapeFunc( reshapeFunc );
     // set the keyboard function - called on keyboard events
     glutKeyboardFunc( keyboardFunc );
-    // set the keyboard function - called on releasing keyboard keys
-    glutKeyboardUpFunc( keyboardUpFunc );
 
     // Load Texture
     g_texture.texture_id = SOIL_load_OGL_texture
@@ -597,7 +568,7 @@ int main( int argc, char *argv[] )
     
     // Initialize PA data struct values
     data.volume = 1.;
-    data.volume2 = 1;
+    data.volume2 = 1.;
     data.frequency = INIT_FREQ;
     data.sigSrc = OSCILLATOR;
     data.fmModFreq = INIT_MOD_FREQ;
@@ -657,11 +628,7 @@ void keyboardFunc( unsigned char key, int x, int y )
     if (keyMap[key] != NULL)
     {
         data.frequency = keyMap[key]->frequency;
-        if (!NOTE_PRESSED)
-        {
-            NOTE_PRESSED = true; //direct PortAudio to apply attack and decay time
-            //printf("Pressing %c\n", key);
-        }
+        printf("[synthesizer]: Note - %s\n", keyMap[key]->noteName);
     }
     else
     {
@@ -890,22 +857,11 @@ void keyboardFunc( unsigned char key, int x, int y )
                 stop_portAudio();
                 freeMapOfKeys(keyMap);
                 free(delayBuffer);
-                printf("\n[syntheizer]: Goodbye!\n");
+                printf("\n[synthesizer]: Goodbye!\n");
                 exit( 0 );
             break;
         }
     }
-}
-
-void keyboardUpFunc (unsigned char key, int x, int y)
-{
-    //Check if the key was one of the notes on the synthesizer
-    if (keyMap[key] != NULL)
-    {
-        NOTE_RELEASED = true; //direct PortAudio to apply release time
-    }
-    //printf("Released %c\n", key);
-
 }
 
 //-----------------------------------------------------------------------------

@@ -28,6 +28,7 @@
 
 /**** Volume ****/ 
 
+//Change volume in the decibel (logarithmic) scale
 float dbToAmplitude (float decibel)
 {
     return (float)pow(10, (decibel/10));
@@ -35,6 +36,7 @@ float dbToAmplitude (float decibel)
 
 /****** Delay effects ******/
 
+//initialize delay length members (both in samples and ms)
 void setDelayLen (float delayLen, paData *data, float sampleRate)
 {
     int delayInSamples = (int)((delayLen / 1000) * sampleRate);
@@ -42,6 +44,7 @@ void setDelayLen (float delayLen, paData *data, float sampleRate)
     data->delayLenMs = delayLen;
 }
 
+//change the delay length (both adding and subtracting)
 void addDelayLen (float delayLen, paData *data, float sampleRate)
 {
     int delayInSamples = (int)((delayLen / 1000) * sampleRate);
@@ -65,21 +68,7 @@ void freeDelayBuffer (float *buffer)
 
 /**** Wave generation ****/ 
 
-void FMmodulate (float carrFreq, float harmRatio, float modIn)
-{
-    //float freq1 = carrFreq * harmRatio;
-    //float scaleVal = freq1 * modIn;
-    //float freq2 = scaleVal + carrFreq
-    
-    //*phase = 2 * M_PI * freq1 / sampleRate + *prevPhase;
-    //sample = sin(*phase);
-    
-    //float freqBuff = freq2 + sample;
-    
-    //return freqBuff;
-}
-
-//return a buffer of frequency values used to FM modulate a wave
+//Create a buffer of frequency values used to apply FM modulation
 void createFMBuffer (float carrFreq, float modFreq, float modIndex, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
 {
     int i;
@@ -103,8 +92,6 @@ void createFMBuffer (float carrFreq, float modFreq, float modIndex, float *buffe
 
 
 void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase, float *FMbuffer)
-//Hey won't every create_wave function going to need to take the Harmonicity Ratio and Modulation Index? - Ryan
-//[Kiran] - Maybe just the createSineWave function. To keep things simple, we should let the modulating waves just be sine waves
 {
     int i;
     float sample;
@@ -112,10 +99,9 @@ void createSineWave(float freq, float *buffer, int numSamples, float sampleRate,
 
     for (i = 0; i < numSamples; i ++)
     {
-        //float finalFreq = FMmodulate(freq);
-
+        //set the actingFrequency based on whether or not this wave should be FM modulated
         actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
-        
+
         *phase = 2 * M_PI * actingFrequency / sampleRate + *prevPhase;
         sample = sin(*phase);
         if (*phase > 2 * M_PI)
@@ -138,10 +124,10 @@ void createTriangleWave (float freq, float *buffer, int numSamples,
 
         for (i = 0; i < numSamples; i++)
         {
-            //float finalFreq = FMmodulate(freq);
+            //set the actingFrequency based on whether or not this wave should be FM modulated
             actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
             int periodInsamples = sampleRate / actingFrequency;
-            
+
             //calculate the phase using the current direction of the slope
             *phase = *direction * (4. / periodInsamples) + *prevPhase;
             sample = *phase;
@@ -171,6 +157,7 @@ void createSawWave(float freq, float *buffer, int numSamples,
 
     for (i = 0; i < numSamples; i++)
     {
+        //set the actingFrequency based on whether or not this wave should be FM modulated
         actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
         int periodInSamples = sampleRate / actingFrequency;
 
@@ -198,6 +185,7 @@ void createSquareWave (float freq, float *buffer, int numSamples,
 
     for (i = 0; i < numSamples; i++)
     {
+        //set the actingFrequency based on whether or not this wave should be FM modulated
         actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
         periodInSamples = sampleRate / actingFrequency;
         *phase = *prevPhase + 1;

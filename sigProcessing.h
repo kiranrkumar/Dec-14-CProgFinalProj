@@ -17,7 +17,6 @@
  */
 
 #include <portaudio.h>
-#include <sndfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -67,8 +66,6 @@ typedef struct {
     sigSource sigSrc;
     waveType sigWaveType;
     waveType sigWaveType2;
-    SNDFILE *audioFile;
-    SF_INFO audioData;
 } paData;
 
 
@@ -79,12 +76,15 @@ typedef struct {
 
 /**** Volume ****/ 
 
+//Change volume in the decibel (logarithmic) scale
 float dbToAmplitude(float decibel);
 
 /****** Delay effects ******/
 
+//initialize delay length members (both in samples and ms)
 void setDelayLen (float delayLen, paData *data, float sampleRate);
 
+//change the delay length (both adding and subtracting)
 void addDelayLen (float delayLen, paData *data, float sampleRate);
 
 void createDelayBuffer (float *buffer, int bufferLen);
@@ -93,8 +93,7 @@ void freeDelayBuffer (float *buffer);
 
 /**** Wave generation ****/ 
 
-void FMmodulate (float carrFreq, float harmRatio, float modIn);
-
+//Create a buffer of frequency values used to apply FM modulation
 void createFMBuffer (float carrFreq, float modFreq, float modIndex, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase);
 
 void createSineWave (float freq, float *buffer, int numSamples, 
