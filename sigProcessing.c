@@ -94,7 +94,7 @@ void AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRat
     return sample;
 }*/
 
-float FMmodulate (float carrFreq /* make global */, float harmRatio, float modIn, float sampleRate, float *phase, float *prevPhase)
+void FMmodulate (float carrFreq /* make global */, float harmRatio, float modIn, float sampleRate, float *phase, float *prevPhase)
 {
     float freq1 = carrFreq * harmRatio;
     float scaleVal = freq1 * modIn;
@@ -104,8 +104,6 @@ float FMmodulate (float carrFreq /* make global */, float harmRatio, float modIn
 
     float sample = sin(*phase);
     float freqFM = freq2 + sample;
-    
-    return freqFM;
 }
 
 void createSineWave(float freq, float *sinebuffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
@@ -115,9 +113,8 @@ void createSineWave(float freq, float *sinebuffer, int numSamples, float sampleR
 
     for (i = 0; i < numSamples; i ++)
     {
-        //float finalFreq = FMmodulate(freq);
         
-        *phase = 2 * M_PI * finalFreq / sampleRate + *prevPhase;
+        *phase = 2 * M_PI * freq / sampleRate + *prevPhase;
         sample = sin(*phase);
         if (*phase > 2 * M_PI)
         {
