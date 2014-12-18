@@ -34,7 +34,6 @@ typedef struct {
 //Audio signal source
 typedef enum signalSource {
     OSCILLATOR,
-    SOUNDFILE,
     MICROPHONE
 } sigSource;
 
@@ -55,6 +54,8 @@ typedef struct {
     float amModFreq;
     float fmModFreq;
     float fmModFreq2;
+    float fmModAmt;
+    float fmModAmt2;
     int delayLen; //delay length in samples
     int delayLenMs; //delay length in milliseconds
     int prevDelayLen;

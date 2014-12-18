@@ -3,7 +3,7 @@
  *
  *       Filename:  main.c
  *
- *    Description:  main driver and helper functions for the C Programming final project
+ *    Description:  Main driver and helper functions for the C Programming final project
  *                  for Ryan Edwards and Kiran Kumar
  *
  *        Version:  1.0
@@ -61,6 +61,7 @@
 #define STEREO                  2
 #define INIT_FREQ               0
 #define INIT_MOD_FREQ           0
+#define INIT_MOD_AMT            10
 #define DEL_BUF_SIZE            (BUFFER_SIZE + SAMPLING_RATE)
 #define VOLUME                  1//amplitude level
 #define VOLUME_INC              .5//in DECIBELS
@@ -78,7 +79,7 @@
 #define ROTATION_INCR           .75f
 
 //Signal Thresholds
-#define NUM_MODES               3
+#define NUM_MODES               2
 
 #define DELAY_LEN_MIN           0
 #define DELAY_LEN_MAX           1000//1000 ms = 1 second
@@ -92,7 +93,9 @@
 #define FM_FREQ_MIN             0
 #define FM_FREQ_INC             5
 
-#define FM_MOD_INDEX            30
+#define FM_MOD_MAX              100
+#define FM_MOD_MIN              0
+#define FM_MOD_INC              5
 
 /**************************************
  *********** </'#define's> ************
@@ -301,7 +304,7 @@ static int paCallback( const void *inputBuffer,
     if (audioData->fmModFreq > 0)
     {
         FMbuffer1 = (float *)malloc(framesPerBuffer * sizeof(float));
-        createFMBuffer(audioData->frequency, audioData->fmModFreq, FM_MOD_INDEX, FMbuffer1, framesPerBuffer, SAMPLING_RATE, &FMphase, &FMprevPhase);
+        createFMBuffer(audioData->frequency, audioData->fmModFreq, audioData->fmModAmt, FMbuffer1, framesPerBuffer, SAMPLING_RATE, &FMphase, &FMprevPhase);
     }
     else
     {
@@ -312,7 +315,7 @@ static int paCallback( const void *inputBuffer,
     if (VOICE_TWO_ON && (audioData->fmModFreq2 > 0))
     {
         FMbuffer2 = (float *)malloc(framesPerBuffer * sizeof(float));
-        createFMBuffer(audioData->frequency, audioData->fmModFreq2, FM_MOD_INDEX, FMbuffer2, framesPerBuffer, SAMPLING_RATE, &FMphase2, &FMprevPhase2);
+        createFMBuffer(audioData->frequency, audioData->fmModFreq2, audioData->fmModAmt2, FMbuffer2, framesPerBuffer, SAMPLING_RATE, &FMphase2, &FMprevPhase2);
     }
     else
     {
@@ -334,11 +337,7 @@ static int paCallback( const void *inputBuffer,
 
     //Get audio data if audio file or frequency if oscillator (based on mode)
     
-    if (audioData->sigSrc == SOUNDFILE)
-    {
-        //TODO - read data from sound file into buffer
-    }
-    else if (audioData->sigSrc == MICROPHONE)
+    if (audioData->sigSrc == MICROPHONE)
     {
         //Read microphone input into buffer
         memcpy(tmp, in, framesPerBuffer * sizeof(float));
@@ -488,14 +487,6 @@ void initialize_glut(int argc, char *argv[]) {
     glutKeyboardFunc( keyboardFunc );
     // set the keyboard function - called on releasing keyboard keys
     glutKeyboardUpFunc( keyboardUpFunc );
-    // set window's to specialKey callback
-    glutSpecialFunc( specialKey );
-    // set window's to specialUpKey callback (when the key is up is called)
-    glutSpecialUpFunc( specialUpKey );
-    // set the mouse function for new clicks
-    glutMouseFunc( mouseFunc );
-    // set the mouse function for motion when a button is pressed
-    glutMotionFunc( mouseMotionFunc ); 
 
     // Load Texture
     g_texture.texture_id = SOIL_load_OGL_texture
@@ -590,7 +581,7 @@ void stop_portAudio() {
 //=============================================================================
 //=============================================================================
 // Name: main
-// Desc: ...
+// Desc: Main function for the synthesizer
 //=============================================================================
 //=============================================================================
 //=============================================================================
@@ -611,6 +602,8 @@ int main( int argc, char *argv[] )
     data.sigSrc = OSCILLATOR;
     data.fmModFreq = INIT_MOD_FREQ;
     data.fmModFreq2 = INIT_MOD_FREQ;
+    data.fmModAmt = INIT_MOD_AMT;
+    data.fmModAmt2 = INIT_MOD_AMT;
     data.amModFreq = INIT_MOD_FREQ;
     data.sigWaveType = SINE;
     data.sigWaveType2 = SINE;
@@ -827,7 +820,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                     data.amModFreq += AM_FREQ_INC;
                 printf("[synthesizer]: AM Modulator Freq: %f\n", data.amModFreq);
                 break;
-            //Subtract FM Modulation - Voice 1
+            //Subtract FM Modulation Frequency - Voice 1
             case 'n':
                 if (data.fmModFreq <= (FM_FREQ_INC + FM_FREQ_MIN))
                     data.fmModFreq = FM_FREQ_MIN;
@@ -835,13 +828,29 @@ void keyboardFunc( unsigned char key, int x, int y )
                     data.fmModFreq -= FM_FREQ_INC;
                 printf("[synthesizer]: FM Modulator Freq - Voice 1: %f\n", data.fmModFreq);
                 break;
-            //Add FM Modulation - Voice 1
+            //Add FM Modulation Frequency - Voice 1
             case 'm':
                 if (data.fmModFreq >= (FM_FREQ_MAX - FM_FREQ_INC))
                     data.fmModFreq = FM_FREQ_MAX;
                 else
                     data.fmModFreq += FM_FREQ_INC;
                 printf("[synthesizer]: FM Modulator Freq - Voice 1: %f\n", data.fmModFreq);
+                break;
+            //Subtract FM Modulation Amount - Voice 1
+            case 'N':
+                if (data.fmModAmt <= (FM_MOD_MIN + FM_MOD_INC))
+                    data.fmModAmt = FM_MOD_MIN;
+                else
+                    data.fmModAmt -= FM_MOD_INC;
+                printf("[synthesizer]: FM Modulator Amount - Voice 1: %f\n", data.fmModAmt);
+                break;
+            //Add FM Modulation Amount - Voice 1
+            case 'M':
+                if (data.fmModAmt >= (FM_MOD_MAX - FM_MOD_INC))
+                    data.fmModAmt = FM_MOD_MAX;
+                else
+                    data.fmModAmt += FM_MOD_INC;
+                printf("[synthesizer]: FM Modulator Amount - Voice 1: %f\n", data.fmModAmt);
                 break;
             //Subtract FM Modulation - Voice 2
             case '8':
@@ -859,6 +868,23 @@ void keyboardFunc( unsigned char key, int x, int y )
                     data.fmModFreq2 += FM_FREQ_INC;
                 printf("[synthesizer]: FM Modulator Freq - Voice 2: %f\n", data.fmModFreq2);
                 break;
+            //Subtract FM Modulation Amount - Voice 2
+            case '*':
+                if (data.fmModAmt2 <= (FM_MOD_MIN + FM_MOD_INC))
+                    data.fmModAmt2 = FM_MOD_MIN;
+                else
+                    data.fmModAmt2 -= FM_MOD_INC;
+                printf("[synthesizer]: FM Modulator Amount - Voice 2: %f\n", data.fmModAmt2);
+                break;
+            //Add FM Modulation Amount - Voice 2
+            case '(':
+                if (data.fmModAmt2 >= (FM_MOD_MAX - FM_MOD_INC))
+                    data.fmModAmt2 = FM_MOD_MAX;
+                else
+                    data.fmModAmt2 += FM_MOD_INC;
+                printf("[synthesizer]: FM Modulator Amount - Voice 2: %f\n", data.fmModAmt2);
+                break;
+            //Quit the program
             case 'q':
                 // Close Stream before exiting
                 stop_portAudio();
@@ -880,70 +906,6 @@ void keyboardUpFunc (unsigned char key, int x, int y)
     }
     //printf("Released %c\n", key);
 
-}
-
-//-----------------------------------------------------------------------------
-// Name: specialKey( int key, int x, int y)
-// Desc: Callback to know when a special key is pressed
-//-----------------------------------------------------------------------------
-void specialKey(int key, int x, int y) { 
-    // Check which (arrow) key is pressed
-    /*  switch(key) {
-        case GLUT_KEY_LEFT : // Arrow key left is pressed
-            g_key_rotate_y = true;
-            g_inc_y = -ROTATION_INCR;
-            break;
-        case GLUT_KEY_RIGHT :    // Arrow key right is pressed
-            g_key_rotate_y = true;
-            g_inc_y = ROTATION_INCR;
-            break;
-        case GLUT_KEY_UP :        // Arrow key up is pressed
-            g_key_rotate_x = true;
-            g_inc_x = -ROTATION_INCR;
-            break;
-        case GLUT_KEY_DOWN :    // Arrow key down is pressed
-            g_key_rotate_x = true;
-            g_inc_x = ROTATION_INCR;
-            break;   
-    }*/
-
-    switch(key) 
-    {
-        case GLUT_KEY_UP: //Increase volume via up arrow
-            if (data.volume >= VOLUME_MAX)
-                data.volume *= dbToAmplitude(VOLUME_INC);
-            break;
-        case GLUT_KEY_DOWN: //Decrease volume via down arrow
-            if (data.volume <= VOLUME_MIN)
-                data.volume *= dbToAmplitude(-VOLUME_INC);
-            break;
-    }
-}  
-
-//-----------------------------------------------------------------------------
-// Name: specialUpKey( int key, int x, int y)
-// Desc: Callback to know when a special key is up
-//-----------------------------------------------------------------------------
-void specialUpKey( int key, int x, int y) {
-    // Check which (arrow) key is unpressed
-    /*  switch(key) {
-        case GLUT_KEY_LEFT : // Arrow key left is unpressed
-            printf("[synthesizer]: LEFT\n");
-            g_key_rotate_y = false;
-            break;
-        case GLUT_KEY_RIGHT :    // Arrow key right is unpressed
-            printf("[synthesizer]: RIGHT\n");
-            g_key_rotate_y = false;
-            break;
-        case GLUT_KEY_UP :        // Arrow key up is unpressed
-            printf("[synthesizer]: UP\n");
-            g_key_rotate_x = false;
-            break;
-        case GLUT_KEY_DOWN :    // Arrow key down is unpressed
-            printf("[synthesizer]: DOWN\n");
-            g_key_rotate_x = false;
-            break;   
-    }*/
 }
 
 //-----------------------------------------------------------------------------
@@ -1006,9 +968,6 @@ void displayFunc( )
     // wait for data
     while( !g_ready ) usleep( 1000 );
 
-    // copy currently playing audio into buffer
-    //memcpy( buffer, g_buffer, g_buffer_size * sizeof(SAMPLE) );
-
     // Hand off to audio callback thread
     g_ready = false;
 
@@ -1021,85 +980,8 @@ void displayFunc( )
     glutSwapBuffers( );
 }
 
-
-//-----------------------------------------------------------------------------
-// Name: void rotateView ()
-// Desc: Rotates the current view by the angle specified in the globals
-//-----------------------------------------------------------------------------
-void rotateView () 
-{
-    static GLfloat angle_x = 0;
-    static GLfloat angle_y = 0;
-    if (g_key_rotate_y) {
-        glRotatef ( angle_y += g_inc_y, 0.0f, 1.0f, 0.0f );
-    }
-    else {
-        glRotatef (angle_y, 0.0f, 1.0f, 0.0f );
-    }
-
-    if (g_key_rotate_x) {
-        glRotatef ( angle_x += g_inc_x, 1.0f, 0.0f, 0.0f );
-    }
-    else {
-        glRotatef (angle_x, 1.0f, 0.0f, 0.0f );
-    }
-}
-
-//-----------------------------------------------------------------------------
-// Name: mouseFunc(int button, int state, int x, int y)
-// Desc: Callback to manage the mouse input when click new button
-//-----------------------------------------------------------------------------
-void mouseFunc(int button, int state, int x, int y)
-{
-    
-    printf("Mouse: %d, %d, x:%d, y:%d\n", button, state, x, y);
-    if (state == 0) {
-        // start Translation
-        g_translate = true;
-        posX = x + g_width/2.f;
-        posY = y + g_height/2.f;
-    }
-    else {
-        // Stop Translation
-        g_translate = false;
-        posX += incrX;
-        posY += incrY;
-        incrX = 0;
-        incrY = 0;
-    }
-    
-}
-
-//-----------------------------------------------------------------------------
-// Name: mouseMotionFunc(int x, int y)
-// Desc: Callback to manage the mouse motion
-//-----------------------------------------------------------------------------
-void mouseMotionFunc(int x, int y)
-{
-    
-    printf("Mouse Moving: %d, %d\n", x, y);
-    if (g_translate) {
-        incrX = x + g_width/2.0f - posX;
-        incrY = y + g_height/2.0f - posY;
-        printf("Position %d, %d\n", posX, posY);
-        //scale down the translation values so you can move the mouse more
-        printf("Translating %f, %f, %f\n", ((float)incrX) * .01, (-(float)incrY) * .01, 0.0);
-        glTranslatef((float)incrX * .01, -(float)(incrY) * .01, 0.0);
-        posX += incrX;
-        posY += incrY;
-    }
-    
-}
-
 void drawScreen(SAMPLE *buffer)
 {
-    //GLfloat half = side / 2.0f;
-
-    // Get the actual volume
-    //GLfloat rms = computeRMS(buffer);
-
-    // Get the value to scale the speaker based on the rms volume
-    //GLfloat scale = (rms * 0.5 + 0.5); 
 
     float x = 0, y = 0;
     
@@ -1107,9 +989,6 @@ void drawScreen(SAMPLE *buffer)
     {
         // Translate
         glTranslatef(x + g_texture.center.x + g_tex_incr.x, y + g_texture.center.y + g_tex_incr.y, -200.0f);
-
-        //Rotate
-        rotateView();
 
         glPushMatrix();
         //draw Picture
@@ -1120,10 +999,8 @@ void drawScreen(SAMPLE *buffer)
         glBindTexture(GL_TEXTURE_2D, g_texture.texture_id);
 
         glBegin( GL_QUADS );
-        //glColor3f( 1f, 1.0f, .7f );
         glTexCoord2d(0.0,0.0); 
         glVertex3d(-halfX, -halfY, 0);
-        //glColor3f( 0.8f, 0.2f, .4f );
         glTexCoord2d(1.0,0.0); 
         glVertex3d(halfX, -halfY, 0);
         glTexCoord2d(1.0,1.0); 
