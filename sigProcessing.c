@@ -94,7 +94,7 @@ void AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRat
     return sample;
 }*/
 
-void FMmodulate (float carrFreq /* make global */, float harmRatio, float modIn, float sampleRate, float *phase, float *prevPhase)
+void FMmodulate (float *FMbuffer, float carrFreq /* make global */, float harmRatio, float modIn, float sampleRate, float numSamples, float *phase, float *prevPhase)
 {
     int i;
     float sample;
@@ -102,7 +102,7 @@ void FMmodulate (float carrFreq /* make global */, float harmRatio, float modIn,
     for (i = 0; i < numSamples; i ++)
     {
         
-        *phase = 2 * M_PI * freq / sampleRate + *prevPhase;
+        *phase = 2 * M_PI * carrFreq / sampleRate + *prevPhase;
         sample = sin(*phase);
         if (*phase > 2 * M_PI)
         {
@@ -123,7 +123,7 @@ void createSineWave(float freq, float *sinebuffer, int numSamples, float sampleR
     for (i = 0; i < numSamples; i ++)
     {
         
-        *phase = 2 * M_PI * FMbuffer[i] / sampleRate + *prevPhase;
+        *phase = 2 * M_PI * freq / sampleRate + *prevPhase;
         sample = sin(*phase);
         if (*phase > 2 * M_PI)
         {
@@ -146,7 +146,8 @@ void createTriangleWave (float freq, float *tribuffer, int numSamples,
         {
             //float finalFreq = FMmodulate(freq);
             //int periodInsamples = sampleRate / finalFreq;
-            int periodInsamples = sampleRate / FMbuffer[i];
+            int periodInsamples = sampleRate / freq;//maybe replace freq with FMbuffer[i]?
+
             
             //calculate the phase using the current direction of the slope
             *phase = (float)direction * (4.f / periodInsamples) + *prevPhase;
@@ -178,7 +179,7 @@ void createSawWave(float freq, float *sawbuffer, int numSamples,
     {        
         //float finalFreq = FMmodulate(freq);
         //int periodInsamples = sampleRate / finalFreq;
-        int periodInsamples = sampleRate / FMbuffer[i];
+        int periodInsamples = sampleRate / freq; //maybe replace freq with FMbuffer[i]?
 
         *phase = 2.f / (float)periodInsamples + *prevPhase;
         sample = *phase;
@@ -198,7 +199,8 @@ void createSawWave(float freq, float *sawbuffer, int numSamples,
 void createSquareWave (float freq, float *squarebuffer, int numSamples, 
         float sampleRate, float *phase, float* prevPhase)
 {
-    int periodInSamples = sampleRate / FMbuffer[i];
+    int periodInSamples = sampleRate / freq; //maybe replace freq with FMbuffer[i]?
+
     int i;
     float sample;
 
@@ -230,7 +232,8 @@ void createVoice1(float freq, float AMfreq1, float harmRatio, float modIn, float
 
     if (/*Sine condition here.*/)
     {
-        createSineWave(freq, harmRatio, modIn);
+        createSineWave(freq, sinebuffer, numSamples, 
+        sampleRate, *phase, *prevPhase);
         for (i = 0; i < numSamples; i++)  
         {
             finalBuffer1[i] = sinebuffer[i] /* * AMbuffer1[i]*/;

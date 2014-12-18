@@ -86,9 +86,9 @@ void freeDelayBuffer (float *buffer);
 
 /**** Amplitude and Frequency Modulation effects ****/ 
 
-float AMmodulate (float modFreq);
+void AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRate, float *phase, float *prevPhase);
 
-void FMmodulate (float modFreq);
+void FMmodulate (float *FMbuffer, float carrFreq /* make global */, float harmRatio, float modIn, float sampleRate, float numSamples, float *phase, float *prevPhase);
 
 void createSineWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase);
