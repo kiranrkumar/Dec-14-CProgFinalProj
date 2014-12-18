@@ -93,8 +93,8 @@ void FMmodulate (float modFreq);
 void createSineWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase);
 
-void createTriangleWave (float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase, int *direction);
+void createTriangleWave (float freq, float *tribuffer, int numSamples, 
+        float sampleRate, float *phase, float *prevPhase, int direction);
 
 void createSawWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase);
