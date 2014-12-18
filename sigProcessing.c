@@ -26,10 +26,14 @@
 
 #define TABLE_SIZE 123 //cover ASCII values to allow for computer keyboard note generation
 
+/**** Volume ****/ 
+
 float dbToAmplitude (float decibel)
 {
     return (float)pow(10, (decibel/10));
 }
+
+/****** Delay effects ******/
 
 void setDelayLen (float delayLen, paData *data, float sampleRate)
 {
@@ -59,11 +63,7 @@ void freeDelayBuffer (float *buffer)
     free(buffer);
 }
 
-void AMmodulate (float modFreq)
-{
-    //Multiply wave buffer by AM modulator buffer here? - Ryan
-    //[Kiran] - Yup. Can you add a float buffer pointer as a parameter to this function? (both in the .h and .c sigProcessing files)
-}
+/**** Wave generation ****/ 
 
 void FMmodulate (float carrFreq, float harmRatio, float modIn)
 {
@@ -79,18 +79,44 @@ void FMmodulate (float carrFreq, float harmRatio, float modIn)
     //return freqBuff;
 }
 
-void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
+//return a buffer of frequency values used to FM modulate a wave
+void createFMBuffer (float carrFreq, float modFreq, float modIndex, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
+{
+    int i;
+    float sample;
+    
+    for (i = 0; i < numSamples; i ++)
+    {
+        *phase = 2 * M_PI * modFreq / sampleRate + *prevPhase;
+        sample = modIndex * sin(*phase);
+        if (*phase > 2 * M_PI)
+        {
+            *phase -= 2 * M_PI;
+        }
+        *prevPhase = *phase;
+
+        buffer[i] = sample + carrFreq;
+
+    }
+
+}
+
+
+void createSineWave(float freq, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase, float *FMbuffer)
 //Hey won't every create_wave function going to need to take the Harmonicity Ratio and Modulation Index? - Ryan
 //[Kiran] - Maybe just the createSineWave function. To keep things simple, we should let the modulating waves just be sine waves
 {
     int i;
     float sample;
+    float actingFrequency;
 
     for (i = 0; i < numSamples; i ++)
     {
         //float finalFreq = FMmodulate(freq);
+
+        actingFrequency = ((FMbuffer == NULL) ? freq : FMbuffer[i]);
         
-        *phase = 2 * M_PI * freq / sampleRate + *prevPhase;
+        *phase = 2 * M_PI * actingFrequency / sampleRate + *prevPhase;
         sample = sin(*phase);
         if (*phase > 2 * M_PI)
         {

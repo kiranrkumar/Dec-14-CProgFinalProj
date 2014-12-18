@@ -66,6 +66,7 @@
 #define VOLUME_INC              .5//in DECIBELS
 #define VOLUME_MIN              (.01)//amplitude level
 #define VOLUME_MAX              1.5//amplitude level
+#define FM_MOD_INDEX            10
 
 //ADSR Values
 #define ATTACK_TIME             100
@@ -119,6 +120,8 @@ float *delayBuffer;
 bool NOTE_PRESSED = false;
 bool NOTE_RELEASED = false;
 bool NOTE_ON = false;
+
+bool VOICE_TWO_ON = false;
 
 float curVolume = .6;
 
@@ -258,25 +261,63 @@ static int paCallback( const void *inputBuffer,
     float *in = (float *)inputBuffer;
     paData *audioData = (paData *)userData;
 
-    /***** Audio buffers *****/
-
-    //tmp buffer to hold signal
-    float *tmp = (float *)malloc(framesPerBuffer * sizeof(float));
-
-    //AM buffer
-    float *AMbuffer = (float *)malloc(framesPerBuffer * sizeof(float));
-
     //Phase information for oscillators
+
+    //Voice 1
     static float phase = 0;
     static float prevPhase = 0;
+
+    //Voice 2
+    static float phase2 = 0;
+    static float prevPhase2 = 0;
 
     static float lfoPhase = 0;
     static float lfoPrevPhase = 0;
 
     static float AMphase = 0;
     static float AMprevPhase = 0;
+
+    static float FMphase = 0;
+    static float FMprevPhase = 0;
+    static float FMphase2 = 0;
+    static float FMprevPhase2 = 0;
     
     static int triDirection = 1;
+
+    /***** Audio buffers *****/
+
+    //tmp buffer to hold signal
+    float *tmp = (float *)malloc(framesPerBuffer * sizeof(float)); //voice 1
+    float *tmp2; //voice 2 - don't initialize unless it's on
+
+    //AM buffer
+    float *AMbuffer = (float *)malloc(framesPerBuffer * sizeof(float));
+
+    //FM buffers
+    float *FMbuffer1, *FMbuffer2;
+
+    //--FM buffer for voice 1
+    if (audioData->fmModFreq > 0)
+    {
+        FMbuffer1 = (float *)malloc(framesPerBuffer * sizeof(float));
+        createFMBuffer(audioData->frequency, audioData->fmModFreq, FM_MOD_INDEX, FMbuffer1, framesPerBuffer, SAMPLING_RATE, &FMphase, &FMprevPhase);
+    }
+    else
+    {
+        FMbuffer1 = NULL;
+    }
+
+    //--FM buffer for voice 2
+    if (audioData->fmModFreq2 > 0)
+    {
+        FMbuffer2 = (float *)malloc(framesPerBuffer * sizeof(float));
+        createFMBuffer(audioData->frequency, audioData->fmModFreq2, FM_MOD_INDEX, FMbuffer1, framesPerBuffer, SAMPLING_RATE, &FMphase2, &FMprevPhase2);
+    }
+    else
+    {
+        FMbuffer2 = NULL;
+    }
+
 
     //delay
     static int delayReader = 0;
@@ -308,7 +349,7 @@ static int paCallback( const void *inputBuffer,
         {
             case SINE:
                 //create sine wave
-                createSineWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase);
+                createSineWave(audioData->frequency, tmp, framesPerBuffer, SAMPLING_RATE, &phase, &prevPhase, FMbuffer1);
                 break;
             case SAWTOOTH:
                 //create sawtooth wave
@@ -326,87 +367,97 @@ static int paCallback( const void *inputBuffer,
                 break;
         }
     }
+
+    //Intialize voice 2 if necessary
+    if (VOICE_TWO_ON)
+    {
+        tmp2 = (float *)malloc(framesPerBuffer * sizeof(float));
+        switch (audioData->sigWaveType2)
+        {
+            case SINE:
+                //create sine wave
+                createSineWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2, FMbuffer2);
+                break;
+            case SAWTOOTH:
+                //create sawtooth wave
+                createSawWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2);
+                break;
+            case SQUARE:
+                //create square wave
+                createSquareWave(audioData->frequency, tmp2, framesPerBuffer, SAMPLING_RATE, &phase2, &prevPhase2);
+                break;
+            case TRIANGLE:
+                //create triangle wave
+                createTriangleWave(audioData->frequency, tmp2, framesPerBuffer, 
+                        SAMPLING_RATE, &phase2, &prevPhase2, &triDirection);
+                break;
+        }
+
+    }
     
-    //Initialize Amplitude Modulation buffer
+    //Initialize Amplitude Modulation buffer if AM frequency is not 0
     if (audioData->amModFreq != 0)
     {
-        createSineWave(audioData->amModFreq, AMbuffer, framesPerBuffer, SAMPLING_RATE, &AMphase, &AMprevPhase);
+        createSineWave(audioData->amModFreq, AMbuffer, framesPerBuffer, SAMPLING_RATE, &AMphase, &AMprevPhase, NULL);
     }
-    else
-    {
-        for (i = 0; i < framesPerBuffer; i++)
-            AMbuffer[i] = 1;
-    }
+
 
     //2. Perform FM Modulation
     
-    //3. Perform delay based on delay length. Store delayed signal in separate tmp buffer
 
+
+    //Shift delayWriter if the delay length has changed
     delayWriter += (audioData->delayLen - audioData->prevDelayLen);
 
     for (i = 0; i < framesPerBuffer; i++)
     {
+        //Set AM buffer to all 1s if the AM frequency is 0
+        if (audioData->amModFreq == 0)
+        {
+            AMbuffer[i] = 1;
+        }
+        
+        //Apply Volume to both voices
+        tmp[i] *= data.volume;
+        if (VOICE_TWO_ON)
+            tmp2[i] *= data.volume2;
+        
+        //store voice2 values into voice1 buffer if voice2 is on
+        if (VOICE_TWO_ON)
+        {
+            tmp[i] = (tmp[i] + tmp2[i])/2.;
+        }
+
+        //Write to the delay buffer
         delayBuffer[delayWriter++] = tmp[i];
+
+        //Add the appropriate mix of dry and wet signals
         tmp[i] = tmp[i] * .01 * audioData->delayPctDry + delayBuffer[delayReader++] * .01 * audioData->delayPctWet;
 
+        //Wrap the delay indices around as necessary
         delayWriter %= DEL_BUF_SIZE;
         delayReader %= DEL_BUF_SIZE;
 
 
-
-        /*
-        if (audioData->sigSrc == OSCILLATOR)
-        //Apply Attack/Decay or Release
-        {
-
-            if (NOTE_PRESSED)
-            {
-                if (i < ATTACK_TIME)
-                {
-                    tmp[i] *= (VOLUME * 1.5) * (i/ATTACK_TIME);
-                }
-                else if ((i >= ATTACK_TIME) && (i < ATTACK_TIME + DECAY_TIME)) 
-                {
-                    tmp[i] -= (0.5 * ((i - ATTACK_TIME) / DECAY_TIME));
-                }
-                
-                NOTE_PRESSED = false;
-                NOTE_ON = true;
-            }
-            else if (NOTE_RELEASED)
-            {
-                if (i > (framesPerBuffer - RELEASE_TIME))
-                {
-                    tmp[i] *= ((framesPerBuffer - i - RELEASE_TIME) / RELEASE_TIME);
-                }
-    
-                NOTE_RELEASED = false;
-                NOTE_ON = false;
-            }
-            else if (!NOTE_ON)
-            {
-                tmp[i] = 0;
-            }
-        }
-        */
-        
         //Apply Amplitude Modulation
         tmp[i] *= AMbuffer[i];
 
-        //Apply Volume
-        tmp[i] *= data.volume;
+        
+        //Apply ADSR?
     }
 
+    //set the previous delay equal to the delay so that the delay writer pointer doesn't shift more the necessary
     audioData->prevDelayLen = audioData->delayLen;
-
-    //Scale levels appropriately
-    
-        //Apply volume
-    
-    //8. Apply ADSR envelope
 
     //(FINISHED) 9. Copy contents of temporary buffer into output buffer
     memcpy(out, tmp, framesPerBuffer * sizeof(float));
+    free(tmp);
+    if (VOICE_TWO_ON)
+        free(tmp2);
+    if (FMbuffer1 != NULL)
+        free(FMbuffer1);
+    if (FMbuffer2 != NULL)
+        free(FMbuffer2);
     
     g_ready = true;
     return 0;
@@ -559,11 +610,13 @@ int main( int argc, char *argv[] )
     
     // Initialize PA data struct values
     data.volume = 1.;
+    data.volume2 = 1;
     data.frequency = INIT_FREQ;
     data.sigSrc = OSCILLATOR;
     data.fmModFreq = INIT_MOD_FREQ;
     data.amModFreq = INIT_MOD_FREQ;
     data.sigWaveType = SINE;
+    data.sigWaveType2 = SINE;
     data.delayLen = 0;
     data.prevDelayLen = 0;
     delayBuffer = (float *)malloc(DEL_BUF_SIZE * sizeof(float));
@@ -647,31 +700,63 @@ void keyboardFunc( unsigned char key, int x, int y )
                 data.sigSrc = (data.sigSrc + 1) % NUM_MODES;
                 printf("[synthesizer]: MODE = %d\n", data.sigSrc);
                 break;
-            //Decrease volume
+            //Decrease volume - Voice 1
             case 'z':
                 if ( (data.volume * dbToAmplitude(-VOLUME_INC) ) > VOLUME_MIN)
                 {
                     data.volume *= dbToAmplitude(-VOLUME_INC);
-                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                    printf("[synthesizer]: Voice 1 Volume: %f\n", data.volume);
                 }
                 else
                 {
                     data.volume = VOLUME_MIN;
-                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                    printf("[synthesizer]: Voice 1 Volume: %f\n", data.volume);
                 }
                 break;
-            //Increase volume
+            //Increase volume - Voice 1
             case 'x':
                 if ( (data.volume * dbToAmplitude(VOLUME_INC) ) < VOLUME_MAX)
                 {
                     data.volume *= dbToAmplitude(VOLUME_INC);
-                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                    printf("[synthesizer]: Voice 1 Volume: %f\n", data.volume);
                 }
                 else
                 {
                     data.volume = VOLUME_MAX;
-                    printf("[synthesizer]: Volume: %f\n", data.volume);
+                    printf("[synthesizer]: Voice 1 Volume: %f\n", data.volume);
                 }
+                break;
+            //Decrease volume - Voice 2
+            if (VOICE_TWO_ON)
+            {
+                case '1':
+                if ( (data.volume2 * dbToAmplitude(-VOLUME_INC) ) > VOLUME_MIN)
+                    {
+                        data.volume2 *= dbToAmplitude(-VOLUME_INC);
+                        printf("[synthesizer]: Voice 2 Volume: %f\n", data.volume2);
+                    }
+                    else
+                    {
+                        data.volume2 = VOLUME_MIN;
+                        printf("[synthesizer]: Voice 2 Volume: %f\n", data.volume2);
+                    }
+            }
+                    break;
+            //Increase volume - Voice 2
+            case '2':
+            if (VOICE_TWO_ON)
+            {
+                if ( (data.volume2 * dbToAmplitude(VOLUME_INC) ) < VOLUME_MAX)
+                    {
+                        data.volume2 *= dbToAmplitude(VOLUME_INC);
+                        printf("[synthesizer]: Voice 2 Volume: %f\n", data.volume2);
+                    }
+                    else
+                    {
+                        data.volume2 = VOLUME_MAX;
+                        printf("[synthesizer]: Voice 2 Volume: %f\n", data.volume2);
+                    }
+            }
                 break;
             //Increase delay
             case '5':
@@ -717,9 +802,17 @@ void keyboardFunc( unsigned char key, int x, int y )
                 }
                 printf("[synthesizer]: Delay - Dry: %f  Wet: %f\n", data.delayPctDry, data.delayPctWet);
                 break;
-            //Change wave type
+            //Change wave type - Voice 1
             case 'c':
                 data.sigWaveType = (data.sigWaveType + 1) % 4;
+                break;
+            //Change wave type - Voice 2
+            case '3':
+                data.sigWaveType2 = (data.sigWaveType2 + 1) % 4;
+                break;
+            //Turn Voice 2 On/Off
+            case 'p':
+                VOICE_TWO_ON = !VOICE_TWO_ON;
                 break;
             //Add AM Modulation
             case 'Z':

@@ -76,6 +76,8 @@ typedef struct {
  *************** Function Prototypes ********************
  ********************************************************/
 
+/**** Volume ****/ 
+
 float dbToAmplitude(float decibel);
 
 /****** Delay effects ******/
@@ -88,14 +90,14 @@ void createDelayBuffer (float *buffer, int bufferLen);
 
 void freeDelayBuffer (float *buffer);
 
-/**** Amplitude and Frequency Modulation effects ****/ 
-
-void AMmodulate (float modFreq);
+/**** Wave generation ****/ 
 
 void FMmodulate (float carrFreq, float harmRatio, float modIn);
 
+void createFMBuffer (float carrFreq, float modFreq, float modIndex, float *buffer, int numSamples, float sampleRate, float *phase, float *prevPhase);
+
 void createSineWave (float freq, float *buffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase);
+        float sampleRate, float *phase, float *prevPhase, float *FMbuffer);
 
 void createTriangleWave (float freq, float *buffer, int numSamples, 
         float sampleRate, float *phase, float *prevPhase, int *direction);
