@@ -51,9 +51,10 @@ typedef enum wave {
 typedef struct {
     float frequency;
     float volume;
-    float pitchShift;
+    float volume2;
     float amModFreq;
     float fmModFreq;
+    float fmModFreq2;
     int delayLen; //delay length in samples
     int delayLenMs; //delay length in milliseconds
     int prevDelayLen;
@@ -64,6 +65,7 @@ typedef struct {
     float delayPctWet;
     sigSource sigSrc;
     waveType sigWaveType;
+    waveType sigWaveType2;
     SNDFILE *audioFile;
     SF_INFO audioData;
 } paData;

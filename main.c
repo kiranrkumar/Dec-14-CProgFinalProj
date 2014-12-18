@@ -79,12 +79,15 @@
 
 //Signal Thresholds
 #define NUM_MODES               3
+
 #define DELAY_LEN_MIN           0
 #define DELAY_LEN_MAX           1000//1000 ms = 1 second
 #define DELAY_FX_INC            5
+
 #define AM_FREQ_MAX             400
 #define AM_FREQ_MIN             0
 #define AM_FREQ_INC             5
+
 #define FM_FREQ_MAX             400
 #define FM_FREQ_MIN             0
 #define FM_FREQ_INC             5
@@ -255,14 +258,24 @@ static int paCallback( const void *inputBuffer,
     float *in = (float *)inputBuffer;
     paData *audioData = (paData *)userData;
 
-    //Temporary audio buffer
+    /***** Audio buffers *****/
+
+    //tmp buffer to hold signal
     float *tmp = (float *)malloc(framesPerBuffer * sizeof(float));
+
+    //AM buffer
+    float *AMbuffer = (float *)malloc(framesPerBuffer * sizeof(float));
 
     //Phase information for oscillators
     static float phase = 0;
     static float prevPhase = 0;
+
     static float lfoPhase = 0;
     static float lfoPrevPhase = 0;
+
+    static float AMphase = 0;
+    static float AMprevPhase = 0;
+    
     static int triDirection = 1;
 
     //delay
@@ -285,12 +298,12 @@ static int paCallback( const void *inputBuffer,
     }
     else if (audioData->sigSrc == MICROPHONE)
     {
-        //(FINISHED) read microphone input into buffer
+        //Read microphone input into buffer
         memcpy(tmp, in, framesPerBuffer * sizeof(float));
     }
     else
     {
-        //(FINISHED) generate proper wave type
+        //generate proper wave type
         switch (audioData->sigWaveType)
         {
             case SINE:
@@ -314,12 +327,20 @@ static int paCallback( const void *inputBuffer,
         }
     }
     
+    //Initialize Amplitude Modulation buffer
+    if (audioData->amModFreq != 0)
+    {
+        createSineWave(audioData->amModFreq, AMbuffer, framesPerBuffer, SAMPLING_RATE, &AMphase, &AMprevPhase);
+    }
+    else
+    {
+        for (i = 0; i < framesPerBuffer; i++)
+            AMbuffer[i] = 1;
+    }
 
     //2. Perform FM Modulation
-
-    //3. Perform AM Modulation
     
-    //4. Perform delay based on delay length. Store delayed signal in separate tmp buffer
+    //3. Perform delay based on delay length. Store delayed signal in separate tmp buffer
 
     delayWriter += (audioData->delayLen - audioData->prevDelayLen);
 
@@ -368,7 +389,9 @@ static int paCallback( const void *inputBuffer,
             }
         }
         */
-
+        
+        //Apply Amplitude Modulation
+        tmp[i] *= AMbuffer[i];
 
         //Apply Volume
         tmp[i] *= data.volume;
@@ -376,9 +399,9 @@ static int paCallback( const void *inputBuffer,
 
     audioData->prevDelayLen = audioData->delayLen;
 
-    //6. Scale levels appropriately
+    //Scale levels appropriately
     
-    //7. Apply volume
+        //Apply volume
     
     //8. Apply ADSR envelope
 
@@ -651,7 +674,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                 }
                 break;
             //Increase delay
-            case 'b':
+            case '5':
                 if ((data.delayLenMs + DELAY_FX_INC) > DELAY_LEN_MAX)
                     setDelayLen(DELAY_LEN_MAX, &data, SAMPLING_RATE);
                 else
@@ -659,7 +682,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                 printf("[synthesizer]: Delay: %d ms\n", data.delayLenMs);
                 break;
             //Decrease delay
-            case 'v':
+            case '4':
                 if ((data.delayLenMs - DELAY_FX_INC) < DELAY_LEN_MIN)
                     setDelayLen(DELAY_LEN_MIN, &data, SAMPLING_RATE);
                 else
@@ -667,7 +690,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                 printf("[synthesizer]: Delay: %d ms\n", data.delayLenMs);
                 break;
             //Increase wet (delayed) signal percentage
-            case 'm':
+            case '7':
                 if ((data.delayPctWet + DELAY_FX_INC) > 100)
                 {
                     data.delayPctWet = 100;
@@ -681,7 +704,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                 printf("[synthesizer]: Delay - Dry: %f  Wet: %f\n", data.delayPctDry, data.delayPctWet);
                 break;
             //Decrease wet (delayed) signal percentage
-            case 'n':
+            case '6':
                 if ((data.delayPctWet - DELAY_FX_INC) < 0)
                 {
                     data.delayPctWet = 0;
@@ -704,13 +727,15 @@ void keyboardFunc( unsigned char key, int x, int y )
                     data.amModFreq = AM_FREQ_MIN;
                 else
                     data.amModFreq -= AM_FREQ_INC;
+                printf("[synthesizer]: AM Modulator Freq: %f\n", data.amModFreq);
                 break;
             //Subtract AM Modulation
             case 'X':
                 if (data.amModFreq >= (AM_FREQ_MAX - AM_FREQ_INC))
                     data.amModFreq = AM_FREQ_MAX;
                 else
-                    data.amModFreq -= AM_FREQ_INC;
+                    data.amModFreq += AM_FREQ_INC;
+                printf("[synthesizer]: AM Modulator Freq: %f\n", data.amModFreq);
                 break;
             //Add FM Modulation
             case 'N':
