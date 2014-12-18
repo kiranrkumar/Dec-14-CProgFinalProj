@@ -59,7 +59,7 @@ void freeDelayBuffer (float *buffer)
     free(buffer);
 }
 
-/*void AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
+void AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
 {
     int i;
     float sample;
@@ -76,29 +76,29 @@ void freeDelayBuffer (float *buffer)
 
         AMbuffer[i] = sample;
     }
-}*/
+}
 
-float AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
+/*float AMmodulate (float modfreq, float *AMbuffer, int numSamples, float sampleRate, float *phase, float *prevPhase)
 {
     int i;
     float sample;
 
-    *phase = 2 * M_PI * modfreq / sampleRate + *prevPhase;
+    phase = 2.f * (float)M_PI * modfreq / sampleRate + prevPhase;
     sample = sin(*phase);
     if (*phase > 2 * M_PI)
     {
         *phase -= 2 * M_PI;
     }
-    *prevPhase = *phase;
+    prevPhase = phase;
 
     return sample;
-}
+}*/
 
-float FMmodulate (float carrFreq, float harmRatio, float modIn, float sampleRate, float phase, float prevPhase)
+float FMmodulate (float carrFreq /* make global */, float harmRatio, float modIn, float sampleRate, float *phase, float *prevPhase)
 {
     float freq1 = carrFreq * harmRatio;
     float scaleVal = freq1 * modIn;
-    float freq2 = scaleVal + carrFreq
+    float freq2 = scaleVal + carrFreq;
     
     *phase = 2 * M_PI * freq1 / sampleRate + *prevPhase;
 
@@ -115,7 +115,7 @@ void createSineWave(float freq, float *sinebuffer, int numSamples, float sampleR
 
     for (i = 0; i < numSamples; i ++)
     {
-        float finalFreq = FMmodulate(freq);
+        //float finalFreq = FMmodulate(freq);
         
         *phase = 2 * M_PI * finalFreq / sampleRate + *prevPhase;
         sample = sin(*phase);
@@ -131,18 +131,18 @@ void createSineWave(float freq, float *sinebuffer, int numSamples, float sampleR
 }
 
 void createTriangleWave (float freq, float *tribuffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase, int *direction)
+        float sampleRate, float *phase, float *prevPhase, int direction)
 {
         int i;
         float sample;
 
         for (i = 0; i < numSamples; i++)
         {
-            float finalFreq = FMmodulate(freq);
+            //float finalFreq = FMmodulate(freq);
             int periodInsamples = sampleRate / finalFreq;
             
             //calculate the phase using the current direction of the slope
-            *phase = *direction * (4. / periodInsamples) + *prevPhase;
+            *phase = (float)direction * (4.f / periodInsamples) + *prevPhase;
             sample = *phase;
             *prevPhase = *phase;
 
@@ -150,10 +150,10 @@ void createTriangleWave (float freq, float *tribuffer, int numSamples,
             if (abs(*phase) >= 1)
             {
                 //Cap the maximum of the absolute value of the phase at 1
-                *prevPhase = *direction;
+                *prevPhase = direction;
                 *phase = *prevPhase;
                 sample = *phase;
-                *direction *= -1;
+                direction *= -1;
             }
 
             tribuffer[i] = sample;
@@ -169,10 +169,10 @@ void createSawWave(float freq, float *sawbuffer, int numSamples,
 
     for (i = 0; i < numSamples; i++)
     {        
-        float finalFreq = FMmodulate(freq);
+        //float finalFreq = FMmodulate(freq);
         int periodInsamples = sampleRate / finalFreq;
         
-        *phase = 2. / periodInSamples + *prevPhase;
+        *phase = 2.f / (float)periodInsamples + *prevPhase;
         sample = *phase;
 
         //move the *phase back down to -1 once it crosses 1
@@ -180,7 +180,7 @@ void createSawWave(float freq, float *sawbuffer, int numSamples,
         {
             *phase = -1;
         }
-        *prevPhase = *phase;
+        prevPhase = phase;
 
         sawbuffer[i] = sample;
     }
@@ -188,19 +188,15 @@ void createSawWave(float freq, float *sawbuffer, int numSamples,
 }
 
 void createSquareWave (float freq, float *squarebuffer, int numSamples, 
-        float sampleRate, float *phase, float *prevPhase)
+        float sampleRate, float *phase, float* prevPhase)
 {
-<<<<<<< HEAD
-
     int periodInSamples = sampleRate / freq;
-=======
->>>>>>> FETCH_HEAD
     int i;
     float sample;
 
     for (i = 0; i < numSamples; i++)
     {
-        float finalFreq = FMmodulate(freq);
+        //float finalFreq = FMmodulate(freq);
         int periodInsamples = sampleRate / finalFreq;
         
         *phase = *prevPhase + 1;
@@ -210,26 +206,26 @@ void createSquareWave (float freq, float *squarebuffer, int numSamples,
         else
             sample = -1;
 
-        *prevPhase = *phase;
+        prevPhase = phase;
 
         squarebuffer[i] = sample;
     }
 }
 
-void createVoice1(float freq, float AMfreq1, float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, 
-        float amp1)
+void createVoice1(float freq, float AMfreq1, float harmRatio, float modIn, float *sinebuffer, float *tribuffer, float *sawbuffer, float *squarebuffer, float *AMbuffer, int numSamples, float amp1)
 {
     int i;
     float finalBuffer1[numSamples];
     float AMbuffer1[numSamples];
 
+   // AMbuffer1[] = AMbuffer(AMfreq1);
+
     if (/*Sine condition here.*/)
     {
-        createSineWave(freq);
+        createSineWave(freq, harmRatio, modIn);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer1[i] = AMbuffer(AMfreq1);
-            finalBuffer1[i] = sineBuffer[i] * AMbuffer1[i];
+            finalBuffer1[i] = sinebuffer[i] /* * AMbuffer1[i]*/;
             finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
     }
@@ -239,8 +235,8 @@ void createVoice1(float freq, float AMfreq1, float *sinebuffer, float *tribuffer
         createTriWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer1[i] = AMbuffer(AMfreq1);
-            finalBuffer1[i] = triBuffer[i] * AMbuffer1[i];
+            //AMbuffer1[i] = AMbuffer(AMfreq1);
+            finalBuffer1[i] = triBuffer[i] /*  * AMbuffer1[i]*/;
             finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
     } 
@@ -250,8 +246,8 @@ void createVoice1(float freq, float AMfreq1, float *sinebuffer, float *tribuffer
         createSawWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer1[i] = AMbuffer(AMfreq1);
-            finalBuffer1[i] = sawBuffer[i] * AMbuffer1[i];
+            //AMbuffer1[i] = AMbuffer(AMfreq1);
+            finalBuffer1[i] = sawBuffer[i] /*  * AMbuffer1[i]*/;
             finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
     } 
@@ -261,8 +257,8 @@ void createVoice1(float freq, float AMfreq1, float *sinebuffer, float *tribuffer
         createSquareWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer1[i] = AMbuffer(AMfreq1);
-            finalBuffer1[i] = squareBuffer[i] * AMbuffer1[i];
+            //AMbuffer1[i] = AMbuffer(AMfreq1);
+            finalBuffer1[i] = squareBuffer[i] /*   * AMbuffer1[i]*/;
             finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
     } 
@@ -280,8 +276,8 @@ void createVoice2(float freq, float AMfreq2, float *sinebuffer, float *tribuffer
         createSineWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer2[i] = AMbuffer(AMfreq2);
-            finalBuffer2[i] = sineBuffer[i] * AMbuffer2[i];
+            //AMbuffer2[i] = AMbuffer(AMfreq2);
+            finalBuffer2[i] = sinebuffer[i] /*  * AMbuffer2[i]*/;
             finalBuffer2[i] = finalBuffer2[i] * amp2;
         }
     }
@@ -291,8 +287,8 @@ void createVoice2(float freq, float AMfreq2, float *sinebuffer, float *tribuffer
         createTriWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer2[i] = AMbuffer(AMfreq2);
-            finalBuffer2[i] = sineBuffer[i] * AMbuffer2[i];
+            //AMbuffer2[i] = AMbuffer(AMfreq2);
+            finalBuffer2[i] = sinebuffer[i] /*  * AMbuffer2[i]*/;
             finalBuffer2[i] = finalBuffer2[i] * amp2;
         }
     } 
@@ -302,8 +298,8 @@ void createVoice2(float freq, float AMfreq2, float *sinebuffer, float *tribuffer
         createSawWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer2[i] = AMbuffer(AMfreq2);
-            finalBuffer2[i] = sineBuffer[i] * AMbuffer2[i];
+            //AMbuffer2[i] = AMbuffer(AMfreq2);
+            finalBuffer2[i] = sinebuffer[i] /*  * AMbuffer2[i]*/;
             finalBuffer2[i] = finalBuffer2[i] * amp2;
         }
     } 
@@ -313,8 +309,8 @@ void createVoice2(float freq, float AMfreq2, float *sinebuffer, float *tribuffer
         createSquareWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer2[i] = AMbuffer(AMfreq2);
-            finalBuffer2[i] = sineBuffer[i] * AMbuffer2[i];
+            //AMbuffer2[i] = AMbuffer(AMfreq2);
+            finalBuffer2[i] = sinebuffer[i] * AMbuffer2[i];
             finalBuffer2[i] = finalBuffer2[i] * amp2;
         }
     } 
@@ -332,8 +328,8 @@ void createVoice3(float freq, float AMfreq3, float *sinebuffer, float *tribuffer
         createSineWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer3[i] = AMbuffer(AMfreq3);
-            finalBuffer3[i] = sineBuffer[i] * AMbuffer3[i];
+            //AMbuffer3[i] = AMbuffer(AMfreq3);
+            finalBuffer3[i] = sinebuffer[i] /*  * AMbuffer3[i]*/;
             finalBuffer3[i] = finalBuffer3[i] * amp3;
         }
     }
@@ -343,8 +339,8 @@ void createVoice3(float freq, float AMfreq3, float *sinebuffer, float *tribuffer
         createTriWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer3[i] = AMbuffer(AMfreq3);
-            finalBuffer3[i] = sineBuffer[i] * AMbuffer3[i];
+            //AMbuffer3[i] = AMbuffer(AMfreq3);
+            finalBuffer3[i] = sinebuffer[i] /*  * AMbuffer3[i]*/;
             finalBuffer3[i] = finalBuffer3[i] * amp3;
         }
     } 
@@ -354,8 +350,8 @@ void createVoice3(float freq, float AMfreq3, float *sinebuffer, float *tribuffer
         createSawWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer3[i] = AMbuffer(AMfreq3);
-            finalBuffer3[i] = sineBuffer[i] * AMbuffer3[i];
+            //AMbuffer3[i] = AMbuffer(AMfreq3);
+            finalBuffer3[i] = sinebuffer[i] /*  * AMbuffer3[i]*/;
             finalBuffer3[i] = finalBuffer3[i] * amp3;
         }
     } 
@@ -365,8 +361,8 @@ void createVoice3(float freq, float AMfreq3, float *sinebuffer, float *tribuffer
         createSquareWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer3[i] = AMbuffer(AMfreq3);
-            finalBuffer3[i] = sineBuffer[i] * AMbuffer3[i];
+            //AMbuffer3[i] = AMbuffer(AMfreq3);
+            finalBuffer3[i] = sinebuffer[i] /*  * AMbuffer3[i]*/;
             finalBuffer3[i] = finalBuffer3[i] * amp3;
         }
     } 
@@ -384,8 +380,8 @@ void createVoice4(float freq, float AMfreq4, float *sinebuffer, float *tribuffer
         createSineWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer4[i] = AMbuffer(AMfreq4);
-            finalBuffer4[i] = sineBuffer[i] * AMbuffer4[i];
+            //AMbuffer4[i] = AMbuffer(AMfreq4);
+            finalBuffer4[i] = sinebuffer[i] /*  * AMbuffer4[i]*/;
             finalBuffer4[i] = finalBuffer4[i] * amp4;
         }
     }
@@ -395,8 +391,8 @@ void createVoice4(float freq, float AMfreq4, float *sinebuffer, float *tribuffer
         createTriWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer4[i] = AMbuffer(AMfreq4);
-            finalBuffer4[i] = sineBuffer[i] * AMbuffer4[i];
+            //AMbuffer4[i] = AMbuffer(AMfreq4);
+            finalBuffer4[i] = sinebuffer[i] /* * AMbuffer4[i]*/;
             finalBuffer4[i] = finalBuffer4[i] * amp4;
         }
     } 
@@ -406,8 +402,8 @@ void createVoice4(float freq, float AMfreq4, float *sinebuffer, float *tribuffer
         createSawWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer4[i] = AMbuffer(AMfreq4);
-            finalBuffer4[i] = sineBuffer[i] * AMbuffer4[i];
+            //AMbuffer4[i] = AMbuffer(AMfreq4);
+            finalBuffer4[i] = sinebuffer[i] /*  * AMbuffer4[i]*/;
             finalBuffer4[i] = finalBuffer4[i] * amp4;
         }
     } 
@@ -417,8 +413,8 @@ void createVoice4(float freq, float AMfreq4, float *sinebuffer, float *tribuffer
         createSquareWave(freq);
         for (i = 0; i < numSamples; i++)  
         {
-            AMbuffer4[i] = AMbuffer(AMfreq4);
-            finalBuffer4[i] = sineBuffer[i] * AMbuffer4[i];
+            //AMbuffer4[i] = AMbuffer(AMfreq4);
+            finalBuffer4[i] = sinebuffer[i] /*  * AMbuffer4[i]*/;
             finalBuffer4[i] = finalBuffer4[i] * amp4;
         }
     } 
