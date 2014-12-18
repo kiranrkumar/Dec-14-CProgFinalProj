@@ -238,7 +238,7 @@ void createVoice1(float freq, float AMfreq1, float harmRatio, float modIn, float
         for (i = 0; i < numSamples; i++)  
         {
             //AMbuffer1[i] = AMbuffer(AMfreq1);
-            finalBuffer1[i] = triBuffer[i] /*  * AMbuffer1[i]*/;
+            finalBuffer1[i] = tribuffer[i] /*  * AMbuffer1[i]*/;
             finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
     } 
@@ -249,7 +249,7 @@ void createVoice1(float freq, float AMfreq1, float harmRatio, float modIn, float
         for (i = 0; i < numSamples; i++)  
         {
             //AMbuffer1[i] = AMbuffer(AMfreq1);
-            finalBuffer1[i] = sawBuffer[i] /*  * AMbuffer1[i]*/;
+            finalBuffer1[i] = sawbuffer[i] /*  * AMbuffer1[i]*/;
             finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
     } 
@@ -260,7 +260,7 @@ void createVoice1(float freq, float AMfreq1, float harmRatio, float modIn, float
         for (i = 0; i < numSamples; i++)  
         {
             //AMbuffer1[i] = AMbuffer(AMfreq1);
-            finalBuffer1[i] = squareBuffer[i] /*   * AMbuffer1[i]*/;
+            finalBuffer1[i] = squarebuffer[i] /*   * AMbuffer1[i]*/;
             finalBuffer1[i] = finalBuffer1[i] * amp1;
         }
     } 
@@ -270,7 +270,7 @@ void createFinalWave(float *finalBuffer1, float *finalBuffer2, float *finalBuffe
 {
     float finalBuffer[numSamples];
     
-    for (i = 0; i < numSamples; i++)
+    for (int i = 0; i < numSamples; i++)
     {
         finalBuffer[i] = (finalBuffer1[i] + finalBuffer2[i] + finalBuffer3[i] + finalBuffer4[i] / 4) * ampFinal;
         out[2*i] = finalBuffer[i];
