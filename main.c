@@ -974,7 +974,7 @@ void drawScreen(SAMPLE *buffer)
     glPushMatrix();
     {
         // Translate
-        glTranslatef(x + g_texture.center.x + g_tex_incr.x, y + g_texture.center.y + g_tex_incr.y, -250.0f);
+        glTranslatef(x + g_texture.center.x + g_tex_incr.x, y + g_texture.center.y + g_tex_incr.y, -200.0f);
 
         //Rotate
         rotateView();
