@@ -66,7 +66,6 @@
 #define VOLUME_INC              .5//in DECIBELS
 #define VOLUME_MIN              (.01)//amplitude level
 #define VOLUME_MAX              1.5//amplitude level
-#define FM_MOD_INDEX            10
 
 //ADSR Values
 #define ATTACK_TIME             100
@@ -92,6 +91,8 @@
 #define FM_FREQ_MAX             400
 #define FM_FREQ_MIN             0
 #define FM_FREQ_INC             5
+
+#define FM_MOD_INDEX            30
 
 /**************************************
  *********** </'#define's> ************
@@ -308,7 +309,7 @@ static int paCallback( const void *inputBuffer,
     }
 
     //--FM buffer for voice 2
-    if (audioData->fmModFreq2 > 0)
+    if (VOICE_TWO_ON && (audioData->fmModFreq2 > 0))
     {
         FMbuffer2 = (float *)malloc(framesPerBuffer * sizeof(float));
         createFMBuffer(audioData->frequency, audioData->fmModFreq2, FM_MOD_INDEX, FMbuffer1, framesPerBuffer, SAMPLING_RATE, &FMphase2, &FMprevPhase2);
@@ -331,7 +332,7 @@ static int paCallback( const void *inputBuffer,
     static float decaySlope = - (VOLUME / DECAY_TIME);
     static float releaseSlope = - (VOLUME / RELEASE_TIME);
 
-    //1. Get audio data if audio file or frequency if oscillator (based on mode)
+    //Get audio data if audio file or frequency if oscillator (based on mode)
     
     if (audioData->sigSrc == SOUNDFILE)
     {
@@ -400,11 +401,6 @@ static int paCallback( const void *inputBuffer,
     {
         createSineWave(audioData->amModFreq, AMbuffer, framesPerBuffer, SAMPLING_RATE, &AMphase, &AMprevPhase, NULL);
     }
-
-
-    //2. Perform FM Modulation
-    
-
 
     //Shift delayWriter if the delay length has changed
     delayWriter += (audioData->delayLen - audioData->prevDelayLen);
@@ -614,6 +610,7 @@ int main( int argc, char *argv[] )
     data.frequency = INIT_FREQ;
     data.sigSrc = OSCILLATOR;
     data.fmModFreq = INIT_MOD_FREQ;
+    data.fmModFreq2 = INIT_MOD_FREQ;
     data.amModFreq = INIT_MOD_FREQ;
     data.sigWaveType = SINE;
     data.sigWaveType2 = SINE;
@@ -814,7 +811,7 @@ void keyboardFunc( unsigned char key, int x, int y )
             case 'p':
                 VOICE_TWO_ON = !VOICE_TWO_ON;
                 break;
-            //Add AM Modulation
+            //Subtract AM Modulation
             case 'Z':
                 if (data.amModFreq <= (AM_FREQ_INC + AM_FREQ_MIN))
                     data.amModFreq = AM_FREQ_MIN;
@@ -822,7 +819,7 @@ void keyboardFunc( unsigned char key, int x, int y )
                     data.amModFreq -= AM_FREQ_INC;
                 printf("[synthesizer]: AM Modulator Freq: %f\n", data.amModFreq);
                 break;
-            //Subtract AM Modulation
+            //Add AM Modulation
             case 'X':
                 if (data.amModFreq >= (AM_FREQ_MAX - AM_FREQ_INC))
                     data.amModFreq = AM_FREQ_MAX;
@@ -830,21 +827,38 @@ void keyboardFunc( unsigned char key, int x, int y )
                     data.amModFreq += AM_FREQ_INC;
                 printf("[synthesizer]: AM Modulator Freq: %f\n", data.amModFreq);
                 break;
-            //Add FM Modulation
-            case 'N':
+            //Subtract FM Modulation - Voice 1
+            case 'n':
                 if (data.fmModFreq <= (FM_FREQ_INC + FM_FREQ_MIN))
                     data.fmModFreq = FM_FREQ_MIN;
                 else
                     data.fmModFreq -= FM_FREQ_INC;
+                printf("[synthesizer]: FM Modulator Freq - Voice 1: %f\n", data.fmModFreq);
                 break;
-            //Subtract AM Modulation
-            case 'M':
+            //Add FM Modulation - Voice 1
+            case 'm':
                 if (data.fmModFreq >= (FM_FREQ_MAX - FM_FREQ_INC))
                     data.fmModFreq = FM_FREQ_MAX;
                 else
-                    data.fmModFreq -= FM_FREQ_INC;
+                    data.fmModFreq += FM_FREQ_INC;
+                printf("[synthesizer]: FM Modulator Freq - Voice 1: %f\n", data.fmModFreq);
                 break;
-    
+            //Subtract FM Modulation - Voice 2
+            case '8':
+                if (data.fmModFreq2 <= (FM_FREQ_INC + FM_FREQ_MIN))
+                    data.fmModFreq2 = FM_FREQ_MIN;
+                else
+                    data.fmModFreq2 -= FM_FREQ_INC;
+                printf("[synthesizer]: FM Modulator Freq - Voice 2: %f\n", data.fmModFreq2);
+                break;
+            //Add FM Modulation - Voice 2
+            case '9':
+                if (data.fmModFreq2 >= (FM_FREQ_MAX - FM_FREQ_INC))
+                    data.fmModFreq2 = FM_FREQ_MAX;
+                else
+                    data.fmModFreq2 += FM_FREQ_INC;
+                printf("[synthesizer]: FM Modulator Freq - Voice 2: %f\n", data.fmModFreq2);
+                break;
             case 'q':
                 // Close Stream before exiting
                 stop_portAudio();
