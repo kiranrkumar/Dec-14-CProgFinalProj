@@ -3,8 +3,7 @@
  *
  *       Filename:  main.c
  *
- *    Description:  Main driver and helper functions for the C Programming final project
- *                  for Ryan Edwards and Kiran Kumar
+ *    Description:  Main driver and helper functions for audio synthesizer
  *
  *        Version:  1.0
  *        Created:  12/11/2014 08:13:32
@@ -202,6 +201,18 @@ void drawScreen(SAMPLE *buffer);
 /**************************************
  *********</Function Prototypes>*******
  **************************************/
+
+void
+bitmap_output(int x, int y, char *string, void *font)
+{
+    int len, i;
+    
+    glRasterPos2f(x, y);
+    len = (int) strlen(string);
+    for (i = 0; i < len; i++) {
+        glutBitmapCharacter(font, string[i]);
+    }
+}
 
 
 
@@ -940,7 +951,7 @@ void drawScreen(SAMPLE *buffer)
 {
 
     float x = 0, y = 0;
-    
+    glClear(GL_COLOR_BUFFER_BIT);
     glPushMatrix();
     {
         // Translate
@@ -951,6 +962,9 @@ void drawScreen(SAMPLE *buffer)
         GLfloat halfX = g_width / 2.0f;
         GLfloat halfY = g_height / 2.0f;
         
+        bitmap_output(0, 0, "Helvetica is yet another bitmap font.", GLUT_BITMAP_HELVETICA_18);
+
+
         // Use the texture
         glBindTexture(GL_TEXTURE_2D, g_texture.texture_id);
 
@@ -965,9 +979,12 @@ void drawScreen(SAMPLE *buffer)
         glVertex3d(-halfX, halfY, 0);
         glEnd();
         glPopMatrix();
-    }
 
+       
+    }
+    
     glPopMatrix();
+    
 }
 
 void initMapOfKeys(noteInfo **map)

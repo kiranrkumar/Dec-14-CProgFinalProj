@@ -10,7 +10,7 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *        Authors:  Kiran Kumar and Ryan Edwards
+ *         Author:  Kiran Kumar (), kk2916@nyu.edu
  *   Organization:  Steinhardt Music Technology M.M.
  *
  * =====================================================================================
